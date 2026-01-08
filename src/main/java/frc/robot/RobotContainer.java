@@ -5,10 +5,15 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.NamedCommands;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
@@ -28,35 +33,33 @@ public class RobotContainer
 {
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  final         CommandXboxController driverXbox = new CommandXboxController(0);
+  final         CommandPS4Controller driverXbox = new CommandPS4Controller(0);
   // The robot's subsystems and commands are defined here...
-  private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
-                                                                                "swerve/neo"));
+   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+                                                                                 "swerve"));
 
-  /**
-   * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
-   */
+  // /**
+  //  * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
+  //  */
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                () -> driverXbox.getLeftY() * -1,
-                                                                () -> driverXbox.getLeftX() * -1)
-                                                            .withControllerRotationAxis(driverXbox::getRightX)
+                                                                () -> driverXbox.getRawAxis(1) * -1,
+                                                                () -> driverXbox.getRawAxis(0) * -1)
+                                                            .withControllerRotationAxis(()->driverXbox.getRawAxis(2))
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
-                                                            .allianceRelativeControl(true);
+                                                            .allianceRelativeControl(false);
 
   
 
   /**
    * Clone's the angular velocity input stream and converts it to a robotRelative input stream.
    */
-  SwerveInputStream driveRobotOriented = driveAngularVelocity.copy().robotRelative(true)
-                                                             .allianceRelativeControl(false);
 
-  ArmSubsystem armSubsystem = new ArmSubsystem();
+  // ArmSubsystem armSubsystem = new ArmSubsystem();
 
-  IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
 
-  ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -81,13 +84,11 @@ public class RobotContainer
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     
       drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-    
-      driverXbox.a().onTrue(Commands.runOnce(drivebase::zeroGyro));
+        //SparkMax mtr = new SparkMax(18, MotorType.kBrushless);
+      //driverXbox.cross().onTrue(new InstantCommand(()->mtr.set(.3))).onFalse(new InstantCommand(()->mtr.set(0)));
+      driverXbox.cross().onTrue(Commands.runOnce(drivebase::zeroGyro));
      // driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
-      driverXbox.start().whileTrue(Commands.none());
-      driverXbox.back().whileTrue(Commands.none());
-      driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-      driverXbox.rightBumper().onTrue(Commands.none());
+      //driverXbox.circle().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
   }
 
   /**
@@ -98,7 +99,7 @@ public class RobotContainer
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("New Auto");
+     return drivebase.getAutonomousCommand("New Auto");
   }
 
   public void setMotorBrake(boolean brake)
