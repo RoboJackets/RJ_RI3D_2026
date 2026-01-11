@@ -13,7 +13,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 public class IntakeSubsystem extends SubsystemBase {
     
-    private SparkMax intake, indexer;
+    private SparkMax intake;
     private SparkMaxConfig config = new SparkMaxConfig();
 
     public IntakeSubsystem() {
