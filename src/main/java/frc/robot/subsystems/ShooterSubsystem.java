@@ -12,8 +12,13 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -25,6 +30,43 @@ import static frc.robot.Constants.*;
 
 
 public class ShooterSubsystem extends SubsystemBase {
+
+    public static class IndexerSubsystem extends SubsystemBase {
+    
+        private SparkMax indexer;
+        private SparkMaxConfig config = new SparkMaxConfig();
+
+        public IndexerSubsystem() {
+            indexer = new SparkMax(0, MotorType.kBrushless);
+
+            config.inverted(false).idleMode(IdleMode.kBrake).smartCurrentLimit(40);
+        }
+
+        public void setPower(double power) {
+            indexer.set(power);
+        }
+
+        public Command getSetPowerCommand(double power) {
+            return this.startEnd(() -> {
+                indexer.set(power);
+            }, () -> {
+                setPower(0);
+            });
+        }
+
+        public Command getSetPowerCommand(DoubleSupplier powSupplier) {
+            return this.runEnd(() -> {
+                indexer.set(powSupplier.getAsDouble());
+            }, () -> {
+                setPower(0);
+            });
+        }
+
+        @Override
+        public void periodic() {
+            SmartDashboard.putNumber("Indexer Power", indexer.get());
+        }
+    }
     public enum ControlMode {
         VelocityPID,
         DutyCycle,

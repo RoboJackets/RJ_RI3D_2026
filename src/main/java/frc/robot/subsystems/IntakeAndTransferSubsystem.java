@@ -19,13 +19,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.*;
 
-public class IntakeAndIndexerSubsystem extends SubsystemBase {
+public class IntakeAndTransferSubsystem extends SubsystemBase {
     @Entry(EntryType.SUBSCRIBER)
     public static double SPEED;
 
     private final SparkMax intake, indexer;
 
-    public IntakeAndIndexerSubsystem() {
+    public IntakeAndTransferSubsystem() {
         intake = new SparkMax(INTAKE_CAN_ID, MotorType.kBrushless);
         indexer = new SparkMax(INDEXER_CAN_ID, MotorType.kBrushless);
 
