@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Microseconds;
 import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
@@ -24,6 +25,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.Robot;
 import java.awt.Desktop;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,12 +50,19 @@ import swervelib.telemetry.SwerveDriveTelemetry;
  */
 public class Vision
 {
-
+  private static Pose2d LIMELIGHT_POSE = new Pose2d();
   /**
    * April Tag Field Layout of the year.
    */
-  public static final AprilTagFieldLayout fieldLayout                     = AprilTagFieldLayout.loadField(
-      AprilTagFields.k2025ReefscapeAndyMark);
+  public static final AprilTagFieldLayout fieldLayout;
+  static {
+    try {
+                                          fieldLayout                     = new AprilTagFieldLayout("2026-rebuilt-andymark.json");
+    }
+    catch(IOException e) {
+      throw new RuntimeException("The field layout cannot be found.");
+    }
+  }
   /**
    * Ambiguity defined as a value between (0,1). Used in {@link Vision#filterPose}.
    */
@@ -146,11 +155,13 @@ public class Vision
       if (poseEst.isPresent())
       {
         var pose = poseEst.get();
+        LIMELIGHT_POSE = pose.estimatedPose.toPose2d();
         swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
                                          pose.timestampSeconds,
                                          camera.curStdDevs);
       }
     }
+
 
   }
 
@@ -180,6 +191,10 @@ public class Vision
           });
     }
     return poseEst;
+  }
+
+  public static Pose2d getLimelightPose() {
+    return LIMELIGHT_POSE;
   }
 
 
