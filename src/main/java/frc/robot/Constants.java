@@ -52,4 +52,9 @@ public final class Constants
   public static final int TOP_SHOOTER_KRAKEN_CAN_ID = 25;
   public static final int BOTTOM_SHOOTER_KRAKEN_CAN_ID = 26;
 
+  public static final int INDEXER_CAN_ID = 22;
+  public static final int INTAKE_CAN_ID = 23;
+  public static final int TRANSFER_CAN_ID = 24;
+
+
 }
