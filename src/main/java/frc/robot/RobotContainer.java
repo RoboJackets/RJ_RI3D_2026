@@ -18,8 +18,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.BasicElevator;
 import frc.robot.subsystems.ElevatorSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.IntakeAndTransferSubsystem;
+import frc.robot.subsystems.ShooterFlywheelSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import swervelib.SwerveInputStream;
@@ -29,13 +32,12 @@ import swervelib.SwerveInputStream;
  * little robot logic should actually be handled in the {@link Robot} periodic methods (other than the scheduler calls).
  * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
  */
-public class RobotContainer
-{
+public class RobotContainer {
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  final         CommandPS4Controller driverXbox = new CommandPS4Controller(0);
+  final CommandXboxController driverXbox = new CommandXboxController(0);
   // The robot's subsystems and commands are defined here...
-   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+  private final SwerveSubsystem drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                  "swerve"));
 
   // /**
@@ -48,6 +50,11 @@ public class RobotContainer
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
                                                             .allianceRelativeControl(false);
+
+  private final BasicElevator climber;
+  private final IntakeAndTransferSubsystem intake;
+  private final ShooterFlywheelSubsystem shooter;
+  private final Indexer indexer;
 
   
 
@@ -70,6 +77,11 @@ public class RobotContainer
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
     NamedCommands.registerCommand("test", Commands.print("I EXIST"));
+
+    climber = new BasicElevator();
+    intake = new IntakeAndTransferSubsystem();
+    shooter = new ShooterFlywheelSubsystem();
+    indexer = new Indexer();
   }
 
   /**
@@ -81,15 +93,21 @@ public class RobotContainer
    */
   private void configureBindings()
   {
-    Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
+      Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     
       drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-        //SparkMax mtr = new SparkMax(18, MotorType.kBrushless);
-      //driverXbox.cross().onTrue(new InstantCommand(()->mtr.set(.3))).onFalse(new InstantCommand(()->mtr.set(0)));
-      driverXbox.cross().onTrue(Commands.runOnce(drivebase::zeroGyro));
-     // driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
-      //driverXbox.circle().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
+
+      driverXbox.leftStick().onTrue(Commands.runOnce(drivebase::zeroGyro));
+
+      driverXbox.a().toggleOnTrue(intake.getOnCommand());
+
+      driverXbox.b().toggleOnTrue(shooter.getOnCommand());
+      driverXbox.rightTrigger().whileTrue(indexer.getOnCommand());
+
+      driverXbox.povUp().whileTrue(climber.getOnCommand(false));
+      driverXbox.povDown().whileTrue(climber.getOnCommand(true));
   }
+    
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

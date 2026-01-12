@@ -12,13 +12,8 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -29,44 +24,7 @@ import static frc.robot.Utilities.*;
 import static frc.robot.Constants.*;
 
 
-public class ShooterSubsystem extends SubsystemBase {
-
-    public static class IndexerSubsystem extends SubsystemBase {
-    
-        private SparkMax indexer;
-        private SparkMaxConfig config = new SparkMaxConfig();
-
-        public IndexerSubsystem() {
-            indexer = new SparkMax(0, MotorType.kBrushless);
-
-            config.inverted(false).idleMode(IdleMode.kBrake).smartCurrentLimit(40);
-        }
-
-        public void setPower(double power) {
-            indexer.set(power);
-        }
-
-        public Command getSetPowerCommand(double power) {
-            return this.startEnd(() -> {
-                indexer.set(power);
-            }, () -> {
-                setPower(0);
-            });
-        }
-
-        public Command getSetPowerCommand(DoubleSupplier powSupplier) {
-            return this.runEnd(() -> {
-                indexer.set(powSupplier.getAsDouble());
-            }, () -> {
-                setPower(0);
-            });
-        }
-
-        @Override
-        public void periodic() {
-            SmartDashboard.putNumber("Indexer Power", indexer.get());
-        }
-    }
+public class ShooterFlywheelSubsystem extends SubsystemBase {
     public enum ControlMode {
         VelocityPID,
         DutyCycle,
@@ -76,10 +34,11 @@ public class ShooterSubsystem extends SubsystemBase {
     @Entry(EntryType.SUBSCRIBER)
     private static double MAX_VOLTAGE = 11.5; // can be changed
 
+    @Entry(EntryType.SUBSCRIBER)
+    private double toggledDutyCycleSpeed = 1D;
 
     @Entry(EntryType.PUBLISHER)
     private double targetTopRPM = 0, currentTopRPM = 0, targetBottomRPM = 0, currentBottomRPM = 0;
-
 
     private static final double SHOOTER_TO_MOTOR_RATIO = 24D / 18D; // X shooter rotations : 1 motor rotation
 
@@ -100,9 +59,9 @@ public class ShooterSubsystem extends SubsystemBase {
     private DutyCycleOut dutyCycleTop = new DutyCycleOut(0D), dutyCycleBottom = new DutyCycleOut(0D);
     private NeutralOut coastTop = new NeutralOut(), coastBottom = new NeutralOut();
 
-    public ControlMode controlMode = ControlMode.VelocityPID;
+    private ControlMode controlMode = ControlMode.VelocityPID;
     
-    public ShooterSubsystem() {
+    public ShooterFlywheelSubsystem() {
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         config.Slot0.kS = 0.1; // picked randomly from CTRE example
@@ -122,7 +81,14 @@ public class ShooterSubsystem extends SubsystemBase {
 
         topKraken = new TalonFX(TOP_SHOOTER_KRAKEN_CAN_ID);
         bottomKraken = new TalonFX(BOTTOM_SHOOTER_KRAKEN_CAN_ID);
+    }
 
+    public ControlMode getControlMode() {
+        return controlMode;
+    }
+
+    public void setControlMode(ControlMode mode) {
+        controlMode = mode;
     }
 
     @Override
@@ -160,6 +126,10 @@ public class ShooterSubsystem extends SubsystemBase {
         targetBottomRPM = rpm;
     }
 
+    public Command getOnCommand() {
+        return getSetPowerCommand(toggledDutyCycleSpeed);
+    }
+
     public Command getSetPowerCommand(double power) {
         return getSetPowerCommand(() -> power);
     }
@@ -176,8 +146,8 @@ public class ShooterSubsystem extends SubsystemBase {
      * @return
      */
     public Command getSetPowerCommand(final DoubleSupplier powSupplier, final double topMult, final double bottomMult) {
-        final double correctedTopMult = MathUtil.clamp(topMult, -1, 1);
-        final double correctedBottomMult = MathUtil.clamp(bottomMult, -1, 1);
+        final double correctedTopMult = MathUtil.clamp(topMult, -1, 1) * MAX_RPM;
+        final double correctedBottomMult = MathUtil.clamp(bottomMult, -1, 1) * MAX_RPM;
 
         return this.runOnce(() -> controlMode = ControlMode.DutyCycle)
             .andThen(this.runEnd(() -> {
