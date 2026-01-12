@@ -113,6 +113,14 @@ public class ShooterFlywheelSubsystem extends SubsystemBase {
         
     }
 
+    public double getCurrentTopRPM() {
+        return currentTopRPM;
+    }
+    
+    public double getCurrentBottomRPM() {
+        return currentBottomRPM;
+    }
+
     public void setTopTargetVelocity(double rpm) {
         targetTopRPM = rpm;
     }

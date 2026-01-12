@@ -1,0 +1,80 @@
+package frc.robot.commands.auto;
+
+import badgerlog.annotations.Entry;
+import badgerlog.annotations.EntryType;
+import frc.robot.subsystems.ShooterFlywheelSubsystem;
+import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+
+public class AlignAndFlywheel extends AutoAlign {
+
+    @Entry(EntryType.SUBSCRIBER)
+    private double a_top, b_top, c_top;
+    @Entry(EntryType.SUBSCRIBER)
+    private double a_bot, b_bot, c_bot;
+
+    private class Regression {
+        public double a, b, c;
+
+        public Regression(double a, double b, double c) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+        }
+
+        public double calculate(double distance) {
+            double result = a * Math.pow(distance, 3);
+            result += b * Math.pow(distance, 2);
+            result += c * distance;
+            return result;
+        }
+    }
+
+    private Regression topRegression = new Regression(a_top, b_top, c_top);
+    private Regression botRegression = new Regression(a_bot, b_bot, c_bot);
+
+    private ShooterFlywheelSubsystem shooter;
+
+    private double delTop, delBot;
+    private final double SPEED_DIFF_THRESHOLD = 1;
+
+    public AlignAndFlywheel(SwerveSubsystem swerve, ShooterFlywheelSubsystem shooter) {
+        super(swerve);
+
+        this.shooter = shooter;
+        this.addRequirements(swerve);
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+    }
+
+    @Override
+    public void execute() {
+        super.execute();
+        
+        // get distance, do regression (read print), and spin flywheel :D
+        topRegression.a = a_top;
+        topRegression.b = b_top;
+        topRegression.c = c_top;
+
+        botRegression.a = a_bot;
+        botRegression.b = b_bot;
+        botRegression.c = c_bot;
+
+        double topTarget = topRegression.calculate(distanceInches);
+        delTop = topTarget - shooter.getCurrentTopRPM();
+        double botTarget = botRegression.calculate(distanceInches);
+        delBot = botTarget - shooter.getCurrentBottomRPM();
+
+        shooter.setTopTargetVelocity(topTarget);
+        shooter.setBottomTargetVelocity(botTarget);
+    }
+
+    @Override
+    public boolean isFinished() {
+        return super.isFinished() 
+        && Math.abs(delBot) < SPEED_DIFF_THRESHOLD
+        && Math.abs(delTop) < SPEED_DIFF_THRESHOLD;
+    }
+}

@@ -57,5 +57,14 @@ public final class Constants
   public static final int TRANSFER_CAN_ID = 24;
   public static final int ELEVATOR1_CAN_ID = 27;
 
+  public enum HubLocations {
+    BLUE(181.9, 158.84, 72),
+    RED(469.32, 158.84, 72);
 
+    public Translation3d translation3d;
+
+    private HubLocations(double x, double y, double z) {
+      translation3d = new Translation3d(Units.inchesToMeters(x), Units.inchesToMeters(y), Units.inchesToMeters(z));
+    }
+  }
 }
