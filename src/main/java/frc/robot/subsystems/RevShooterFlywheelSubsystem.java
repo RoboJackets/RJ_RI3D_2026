@@ -1,30 +1,28 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.Constants.BOTTOM_SHOOTER_NEO_CAN_ID;
+import static frc.robot.Constants.TOP_SHOOTER_NEO_CAN_ID;
 
 import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.NeutralOut;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import badgerlog.annotations.Entry;
 import badgerlog.annotations.EntryType;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import static frc.robot.Utilities.*;
-import static frc.robot.Constants.*;
 
-
-public class ShooterFlywheelSubsystem extends SubsystemBase {
+public class RevShooterFlywheelSubsystem extends SubsystemBase {
     public enum ControlMode {
         VelocityPID,
         DutyCycle,
@@ -46,41 +44,44 @@ public class ShooterFlywheelSubsystem extends SubsystemBase {
 
     private static final double TOP_DIAMETER_INCHES = 4, BOTTOM_DIAMETER_INCHES = 3;
 
-    private static final InvertedValue TOP_INVERTED = InvertedValue.Clockwise_Positive,
-            BOTTOM_INVERTED = InvertedValue.CounterClockwise_Positive;
+    private static final boolean TOP_INVERTED = false,
+            BOTTOM_INVERTED = true;
     
 
-    private TalonFX topKraken, bottomKraken;
-
-    private VelocityVoltage velocityControllerTop = new VelocityVoltage(0).withSlot(0),
-            velocityControlBottom = new VelocityVoltage(0).withSlot(0); // start at 0 rps, config will be applied from slot 0
-
-
-    private DutyCycleOut dutyCycleTop = new DutyCycleOut(0D), dutyCycleBottom = new DutyCycleOut(0D);
-    private NeutralOut coastTop = new NeutralOut(), coastBottom = new NeutralOut();
-
+    private SparkMax topSpark, bottomSpark;
+    private RelativeEncoder topEncoder, bottomEncoder;
+    
+    private SimpleMotorFeedforward feedforwardController;
+    private PIDController pidControllerTop, pidControllerBottom;
+    
     private ControlMode controlMode = ControlMode.VelocityPID;
     
-    public ShooterFlywheelSubsystem() {
-        TalonFXConfiguration config = new TalonFXConfiguration();
+    public RevShooterFlywheelSubsystem() {
+        topSpark = new SparkMax(TOP_SHOOTER_NEO_CAN_ID, MotorType.kBrushless);
+        bottomSpark = new SparkMax(BOTTOM_SHOOTER_NEO_CAN_ID, MotorType.kBrushless);
 
-        config.Slot0.kS = 0.1; // picked randomly from CTRE example
-        config.Slot0.kV = 0.12; // kraken x60 is 500 kv, at 12v this is the number you get for volts / rps
-        config.Slot0.kP = 0.11; // picked randomly from CTRE example
-        config.Slot0.kI = 0; // not needed
-        config.Slot0.kD = 0; // not needed
-        config.Voltage.withPeakForwardVoltage(Volts.of(MAX_VOLTAGE)).withPeakReverseVoltage(Volts.of(-MAX_VOLTAGE));
+        SparkMaxConfig config = new SparkMaxConfig();
 
-        config.MotorOutput.NeutralMode = NeutralModeValue.Coast; // maybe not needed
+        config.encoder.velocityConversionFactor(SHOOTER_TO_MOTOR_RATIO)
+                .quadratureMeasurementPeriod(16)
+                .quadratureAverageDepth(2);
 
-        config.CurrentLimits.SupplyCurrentLowerLimit = 50; // 50A
-        config.CurrentLimits.SupplyCurrentLowerTime = 2.5; // 2.5s before current dorps
-        
-        applyTalonFXConfig(topKraken, config.withMotorOutput(new MotorOutputConfigs().withInverted(TOP_INVERTED)));
-        applyTalonFXConfig(bottomKraken, config.withMotorOutput(new MotorOutputConfigs().withInverted(BOTTOM_INVERTED)));
+        config.smartCurrentLimit(90)
+                .idleMode(IdleMode.kCoast)
+                .signals.primaryEncoderVelocityPeriodMs(15); // changing status frame 20ms -> 15ms
 
-        topKraken = new TalonFX(TOP_SHOOTER_KRAKEN_CAN_ID);
-        bottomKraken = new TalonFX(BOTTOM_SHOOTER_KRAKEN_CAN_ID);
+        config.inverted(TOP_INVERTED);
+        topSpark.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        config.inverted(BOTTOM_INVERTED);
+        bottomSpark.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        topEncoder = topSpark.getEncoder();
+        bottomEncoder = bottomSpark.getEncoder();
+    
+        feedforwardController = new SimpleMotorFeedforward(0.1, .12);
+        pidControllerTop = new PIDController(.11, 0D, 0D);
+        pidControllerBottom = new PIDController(.11, 0D, 0D);
     }
 
     public ControlMode getControlMode() {
@@ -93,21 +94,21 @@ public class ShooterFlywheelSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        currentTopRPM = topKraken.getRotorVelocity().getValueAsDouble() * SHOOTER_TO_MOTOR_RATIO;
-        currentBottomRPM = bottomKraken.getRotorVelocity().getValueAsDouble() * SHOOTER_TO_MOTOR_RATIO;
-        
+        currentTopRPM = topEncoder.getVelocity();
+        currentBottomRPM = bottomEncoder.getVelocity();
+            
         switch (controlMode) {
             case VelocityPID -> {
-                topKraken.setControl(velocityControllerTop.withVelocity(targetTopRPM / SHOOTER_TO_MOTOR_RATIO));
-                bottomKraken.setControl(velocityControlBottom.withVelocity(targetBottomRPM / SHOOTER_TO_MOTOR_RATIO));
+                topSpark.setVoltage(pidControllerTop.calculate(currentTopRPM, targetTopRPM) + feedforwardController.calculate(targetTopRPM));
+                bottomSpark.setVoltage(pidControllerBottom.calculate(currentTopRPM, targetBottomRPM) + feedforwardController.calculate(targetBottomRPM));
             }
             case DutyCycle -> {
-                topKraken.setControl(dutyCycleTop.withOutput(targetTopRPM / MAX_RPM));
-                bottomKraken.setControl(dutyCycleBottom.withOutput(targetBottomRPM / MAX_RPM));
+                topSpark.set(targetTopRPM / MAX_RPM);
+                bottomSpark.set(targetBottomRPM / MAX_RPM);
             }
             case Coast -> {
-                topKraken.setControl(coastTop);
-                bottomKraken.setControl(coastBottom);
+                topSpark.set(0);
+                bottomSpark.set(0);
             }
         }
         

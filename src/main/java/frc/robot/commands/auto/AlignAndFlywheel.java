@@ -2,7 +2,7 @@ package frc.robot.commands.auto;
 
 import badgerlog.annotations.Entry;
 import badgerlog.annotations.EntryType;
-import frc.robot.subsystems.ShooterFlywheelSubsystem;
+import frc.robot.subsystems.RevShooterFlywheelSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
 public class AlignAndFlywheel extends AutoAlign {
@@ -32,12 +32,12 @@ public class AlignAndFlywheel extends AutoAlign {
     private Regression topRegression = new Regression(a_top, b_top, c_top);
     private Regression botRegression = new Regression(a_bot, b_bot, c_bot);
 
-    private ShooterFlywheelSubsystem shooter;
+    private RevShooterFlywheelSubsystem shooter;
 
     private double delTop, delBot;
     private final double SPEED_DIFF_THRESHOLD = 1;
 
-    public AlignAndFlywheel(SwerveSubsystem swerve, ShooterFlywheelSubsystem shooter) {
+    public AlignAndFlywheel(SwerveSubsystem swerve, RevShooterFlywheelSubsystem shooter) {
         super(swerve);
 
         this.shooter = shooter;

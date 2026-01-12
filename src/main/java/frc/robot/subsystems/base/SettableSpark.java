@@ -50,6 +50,7 @@ public class SettableSpark extends SubsystemBase{
 
     public void setPower(double power) {
         motor.set(power);
+        motor.getEncoder();
         this.currentPower = power;
     }
 

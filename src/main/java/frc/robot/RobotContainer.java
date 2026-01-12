@@ -5,24 +5,19 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.NamedCommands;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
+
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BasicElevator;
-import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.IntakeAndTransferSubsystem;
-import frc.robot.subsystems.ShooterFlywheelSubsystem;
+import frc.robot.subsystems.RevShooterFlywheelSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import swervelib.SwerveInputStream;
@@ -53,7 +48,7 @@ public class RobotContainer {
 
   private final BasicElevator climber;
   private final IntakeAndTransferSubsystem intake;
-  private final ShooterFlywheelSubsystem shooter;
+  private final RevShooterFlywheelSubsystem shooter;
   private final Indexer indexer;
 
   
@@ -80,7 +75,7 @@ public class RobotContainer {
 
     climber = new BasicElevator();
     intake = new IntakeAndTransferSubsystem();
-    shooter = new ShooterFlywheelSubsystem();
+    shooter = new RevShooterFlywheelSubsystem();
     indexer = new Indexer();
   }
 
