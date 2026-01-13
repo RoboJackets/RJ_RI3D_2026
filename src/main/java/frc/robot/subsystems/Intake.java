@@ -6,11 +6,13 @@ import static frc.robot.Constants.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import static frc.robot.Utilities.*;
 
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+
 public class Intake extends SettableSpark {
-    private static double defaultPower = .5;
+    private static double defaultPower = -.5;
 
     public Intake () {
-        super("intake", INTAKE_CAN_ID, false, () -> Intake.defaultPower);
+        super("intake", INTAKE_CAN_ID, false, () -> Intake.defaultPower, MotorType.kBrushed);
     }
 
     @Override
