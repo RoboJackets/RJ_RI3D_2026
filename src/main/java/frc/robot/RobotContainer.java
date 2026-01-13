@@ -19,8 +19,10 @@ import frc.robot.commands.auto.AlignAndFlywheel;
 import frc.robot.commands.auto.AutoAlign;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.IntakeAndTransferSubsystem;
 import frc.robot.subsystems.RevShooterFlywheelSubsystem;
+import frc.robot.subsystems.Transfer;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import swervelib.SwerveInputStream;
@@ -53,7 +55,8 @@ public class RobotContainer {
   private final SwerveInputStream driveAngularVelocity;
 
   private final ElevatorSubsystem climber;
-  private final IntakeAndTransferSubsystem intake;
+  private final Intake intake;
+  private final Transfer transfer;
   private final RevShooterFlywheelSubsystem shooter;
   private final Indexer indexer;
 
@@ -95,7 +98,8 @@ public class RobotContainer {
     DriverStation.silenceJoystickConnectionWarning(true);
 
     climber = new ElevatorSubsystem();
-    intake = new IntakeAndTransferSubsystem();
+    intake = new Intake();
+    transfer = new Transfer();
     shooter = new RevShooterFlywheelSubsystem();
     indexer = new Indexer();
 
@@ -123,7 +127,9 @@ public class RobotContainer {
 
     driverXbox.leftStick().onTrue(Commands.runOnce(drivebase::zeroGyroWithAlliance));
 
-    driverXbox.a().toggleOnTrue(intake.getOnCommand());
+    driverXbox.a().whileTrue(intake.getOnCommand());
+    driverXbox.x().whileTrue(transfer.getOnCommand());
+
 
     driverXbox.b().toggleOnTrue(shooter.getOnCommand());
     driverXbox.rightTrigger().whileTrue(indexer.getOnCommand());
@@ -137,11 +143,11 @@ public class RobotContainer {
             () -> controlFlywheelWithAutoAlign).until(driverXbox.axisGreaterThan(2, .5)));
 
     final DashboardCommands dashboardCommands = new DashboardCommands();
-    new Trigger(() -> enableClimberPowDash).whileTrue(dashboardCommands.climberPowerCommand(climber));
-    new Trigger(() -> enableClimberPosDash).whileTrue(dashboardCommands.climberPositionCommand(climber));
-    new Trigger(() -> enableShooterDash).whileTrue(dashboardCommands.shooterPowerCommand(shooter));
-    new Trigger(() -> enableIndexerDash).whileTrue(dashboardCommands.indexerPowerCommand(indexer));
-    new Trigger(() -> enableIntakeDash).whileTrue(dashboardCommands.intakePowerCommand(intake));
+    // new Trigger(() -> enableClimberPowDash).whileTrue(dashboardCommands.climberPowerCommand(climber));
+    // new Trigger(() -> enableClimberPosDash).whileTrue(dashboardCommands.climberPositionCommand(climber));
+    // new Trigger(() -> enableShooterDash).whileTrue(dashboardCommands.shooterPowerCommand(shooter));
+    // new Trigger(() -> enableIndexerDash).whileTrue(dashboardCommands.indexerPowerCommand(indexer));
+    // new Trigger(() -> enableIntakeDash).whileTrue(dashboardCommands.intakePowerCommand(intake));
 
     driverXbox.leftBumper()
         .whileTrue(drivebase.drive(SwerveInputStream.of(drivebase.getSwerveDrive(), () -> 1, () -> 1)));

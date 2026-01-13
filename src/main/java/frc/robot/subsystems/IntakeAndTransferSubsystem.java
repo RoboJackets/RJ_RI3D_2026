@@ -14,7 +14,7 @@ import static frc.robot.Utilities.*;
 public class IntakeAndTransferSubsystem extends SubsystemBase {
     private final SettableSpark intake, transfer1;
 
-    private static double intakeSpeed = 0.2, transferSpeed = 0.5;
+    private static double intakeSpeed = 1, transferSpeed = 1;
     
     @Override
     public void periodic() {

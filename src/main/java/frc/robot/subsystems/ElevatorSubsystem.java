@@ -20,7 +20,7 @@ public class ElevatorSubsystem extends SettableSpark {
         }
     }
 
-    private static double ELEVATOR_SPEED = 0.5;
+    private static double ELEVATOR_SPEED = 0.35;
 
     public ElevatorSubsystem() {
         super("Elevator", ELEVATOR1_CAN_ID, false, () -> ELEVATOR_SPEED);
