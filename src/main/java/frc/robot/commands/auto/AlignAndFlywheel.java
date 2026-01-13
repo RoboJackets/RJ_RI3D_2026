@@ -9,7 +9,10 @@ public class AlignAndFlywheel extends AutoAlign {
     private double a_top, b_top, c_top;
     private double a_bot, b_bot, c_bot;
 
-    private class Regression {
+    private boolean shootOnMove = false;
+
+
+    public static class Regression {
         public double a, b, c;
 
         public Regression(double a, double b, double c) {
@@ -76,6 +79,8 @@ public class AlignAndFlywheel extends AutoAlign {
         a_top = getNumber("edit a_top", a_top);
         b_top = getNumber("edit b_top", b_top);
         c_top = getNumber("edit c_top", c_top);
+
+        shootOnMove = getBoolean("edit shootOnMove", shootOnMove);
     }
 
     @Override

@@ -7,8 +7,11 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.commands.auto.AlignAndFlywheel.Regression;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import swervelib.SwerveInputStream;
+
+import static frc.robot.Utilities.*;
 
 public class AutoAlign extends Command {
     private static final double ROTATING_FAST_RAD_CUTOFF = Units.degreesToRadians(15);
@@ -20,6 +23,12 @@ public class AutoAlign extends Command {
     private final SwerveInputStream swerveInputStream;
 
     private final Translation2d hubLocation;
+
+
+    private double a_move, b_move, c_move;
+    
+    private Regression shootOnMoveRegression = new Regression(a_move, b_move, c_move);
+
 
     public AutoAlign(SwerveSubsystem swerve, SwerveInputStream swerveInputStream) {
         this.swerve = swerve;
@@ -40,11 +49,18 @@ public class AutoAlign extends Command {
     
     @Override
     public void execute() {
+        shootOnMoveRegression.a = a_move;
+        shootOnMoveRegression.b = b_move;
+        shootOnMoveRegression.c = c_move;
+
         swerve.driveFieldOriented(swerveInputStream);
 
         SmartDashboard.putBoolean("view Auto Align Running", isScheduled());
         SmartDashboard.putBoolean("view Aligned", readyToShoot());
 
+        a_move = getNumber("edit a_move", a_move);
+        b_move = getNumber("edit b_move", b_move);
+        c_move = getNumber("edit c_move", c_move);
     }
 
     double getHubDistance() {
