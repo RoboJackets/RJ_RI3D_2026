@@ -2,7 +2,6 @@ package frc.robot.commands.auto;
 
 import badgerlog.annotations.Entry;
 import badgerlog.annotations.EntryType;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;

@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.Constants.BOTTOM_SHOOTER_NEO_CAN_ID;
+import static frc.robot.Constants.TOP_SHOOTER_NEO_CAN_ID;
+import static frc.robot.Utilities.applyTalonFXConfig;
 
 import java.util.function.DoubleSupplier;
 
@@ -13,15 +16,11 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import badgerlog.annotations.Entry;
+import badgerlog.annotations.EntryType;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import badgerlog.annotations.Entry;
-import badgerlog.annotations.EntryType;
-
-import static frc.robot.Utilities.*;
-import static frc.robot.Constants.*;
 
 
 public class CTREShooterFlywheelSubsystem extends SubsystemBase {
@@ -44,6 +43,7 @@ public class CTREShooterFlywheelSubsystem extends SubsystemBase {
 
     public static final double MAX_RPM = Math.round(SHOOTER_TO_MOTOR_RATIO * 6000);
 
+    @SuppressWarnings("unused")
     private static final double TOP_DIAMETER_INCHES = 4, BOTTOM_DIAMETER_INCHES = 3;
 
     private static final InvertedValue TOP_INVERTED = InvertedValue.Clockwise_Positive,

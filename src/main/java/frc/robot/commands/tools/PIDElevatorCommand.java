@@ -1,7 +1,6 @@
 package frc.robot.commands.tools;
 
 import java.util.function.DoubleSupplier;
-import java.util.function.IntSupplier;
 
 import badgerlog.annotations.Entry;
 import badgerlog.annotations.EntryType;

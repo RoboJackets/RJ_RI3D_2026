@@ -5,10 +5,10 @@ import static frc.robot.Constants.TOP_SHOOTER_NEO_CAN_ID;
 
 import java.util.function.DoubleSupplier;
 
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -42,6 +42,7 @@ public class RevShooterFlywheelSubsystem extends SubsystemBase {
 
     public static final double MAX_RPM = Math.round(SHOOTER_TO_MOTOR_RATIO * 6000);
 
+    @SuppressWarnings("unused")
     private static final double TOP_DIAMETER_INCHES = 4, BOTTOM_DIAMETER_INCHES = 3;
 
     private static final boolean TOP_INVERTED = false,

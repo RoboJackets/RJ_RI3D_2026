@@ -1,9 +1,5 @@
 package frc.robot.commands.auto;
 
-import frc.robot.Constants;
-import frc.robot.subsystems.swervedrive.SwerveSubsystem;
-import frc.robot.subsystems.swervedrive.Vision;
-import swervelib.SwerveInputStream;
 import badgerlog.annotations.Entry;
 import badgerlog.annotations.EntryType;
 import edu.wpi.first.math.MathUtil;
@@ -13,6 +9,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
+import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+import swervelib.SwerveInputStream;
 
 public class OldAutoAlign extends Command {
     // https://github.com/team1306/Robot2024/blob/main/src/main/java/frc/robot/commands/drive/ShooterDriveCommand.java
