@@ -44,8 +44,8 @@ public final class Constants
     public static final double TURN_CONSTANT    = 6;
   }
 
-  public static final int TOP_SHOOTER_NEO_CAN_ID = 25;
-  public static final int BOTTOM_SHOOTER_NEO_CAN_ID = 26;
+  public static final int TOP_SHOOTER_NEO_CAN_ID = 26;
+  public static final int BOTTOM_SHOOTER_NEO_CAN_ID = 25;
 
   public static final int INDEXER_CAN_ID = 22;
   public static final int INTAKE_CAN_ID = 21;
