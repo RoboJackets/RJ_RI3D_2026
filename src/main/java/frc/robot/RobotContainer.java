@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import badgerlog.annotations.Entry;
-import badgerlog.annotations.EntryType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -23,16 +21,16 @@ import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import swervelib.SwerveInputStream;
 
+import static frc.robot.Utilities.*;
+
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
  * little robot logic should actually be handled in the {@link Robot} periodic methods (other than the scheduler calls).
  * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  @Entry(EntryType.SUBSCRIBER)
   public static double POW = 2, MULT_X = -.25, MULT_Y = -.25, MULT_ROT = .5, DEADBAND = .05;
 
-  @Entry(EntryType.SUBSCRIBER)
   public static boolean driveRobotOriented = false, controlFlywheelWithAutoAlign = false;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -52,8 +50,6 @@ public class RobotContainer {
 
   private final Command driveFieldOrientedCommand, driveRobotOrientedCommand;
 
-  @Entry(EntryType.SUBSCRIBER)
-//   @Table("DashboardCommands")
   private boolean enableClimberPowDash = false, enableClimberPosDash = false, enableShooterDash = false,
       enableIndexerDash = false, enableIntakeDash = false;
 
@@ -131,11 +127,13 @@ public class RobotContainer {
               () -> controlFlywheelWithAutoAlign
           ).until(driverXbox.axisGreaterThan(2, .5))
       );
-      new Trigger(() -> enableClimberPowDash).whileTrue(DashboardCommands.climberPowerCommand(climber));
-      new Trigger(() -> enableClimberPosDash).whileTrue(DashboardCommands.climberPositionCommand(climber));
-      new Trigger(() -> enableShooterDash).whileTrue(DashboardCommands.shooterPowerCommand(shooter));
-      new Trigger(() -> enableIndexerDash).whileTrue(DashboardCommands.indexerPowerCommand(indexer));
-      new Trigger(() -> enableIntakeDash).whileTrue(DashboardCommands.intakePowerCommand(intake));
+
+      final DashboardCommands dashboardCommands = new DashboardCommands();
+      new Trigger(() -> enableClimberPowDash).whileTrue(dashboardCommands.climberPowerCommand(climber));
+      new Trigger(() -> enableClimberPosDash).whileTrue(dashboardCommands.climberPositionCommand(climber));
+      new Trigger(() -> enableShooterDash).whileTrue(dashboardCommands.shooterPowerCommand(shooter));
+      new Trigger(() -> enableIndexerDash).whileTrue(dashboardCommands.indexerPowerCommand(indexer));
+      new Trigger(() -> enableIntakeDash).whileTrue(dashboardCommands.intakePowerCommand(intake));
   }
     
 
@@ -153,5 +151,23 @@ public class RobotContainer {
   public void setMotorBrake(boolean brake)
   {
     drivebase.setMotorBrake(brake);
+  }
+
+  public void updateDashboard() {
+    POW = getNumber("edit POW", POW);
+    MULT_X = getNumber("edit MULT_X", MULT_X);
+    MULT_Y = getNumber("edit MULT_Y", MULT_Y);
+    MULT_ROT = getNumber("edit MULT_ROT", MULT_ROT);
+    DEADBAND = getNumber("edit DEADBAND", DEADBAND);
+
+    driveRobotOriented = getBoolean("edit driveRobotOriented", driveRobotOriented);
+    controlFlywheelWithAutoAlign = getBoolean("edit controlFlywheelWithAutoAlign", controlFlywheelWithAutoAlign);
+    
+    enableClimberPowDash = getBoolean("edit enableClimberPowDash", enableClimberPowDash);
+    enableClimberPosDash = getBoolean("edit enableClimberPosDash", enableClimberPosDash);
+    enableShooterDash = getBoolean("edit enableShooterDash", enableShooterDash);
+    enableIndexerDash = getBoolean("edit enableIndexerDash", enableIndexerDash);
+    enableIntakeDash = getBoolean("edit enableIntakeDash", enableIntakeDash);
+      
   }
 }

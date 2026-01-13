@@ -1,15 +1,12 @@
 package frc.robot.commands.auto;
 
-import badgerlog.annotations.Entry;
-import badgerlog.annotations.EntryType;
 import frc.robot.subsystems.RevShooterFlywheelSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import swervelib.SwerveInputStream;
+import static frc.robot.Utilities.*;
 
 public class AlignAndFlywheel extends AutoAlign {
-    @Entry(EntryType.SUBSCRIBER)
     private double a_top, b_top, c_top;
-    @Entry(EntryType.SUBSCRIBER)
     private double a_bot, b_bot, c_bot;
 
     private class Regression {
@@ -71,6 +68,14 @@ public class AlignAndFlywheel extends AutoAlign {
 
         shooter.setTopTargetVelocity(topTarget);
         shooter.setBottomTargetVelocity(botTarget);
+
+        a_bot = getNumber("edit a_bot", a_bot);
+        b_bot = getNumber("edit b_bot", b_bot);
+        c_bot = getNumber("edit c_bot", c_top);
+
+        a_top = getNumber("edit a_top", a_top);
+        b_top = getNumber("edit b_top", b_top);
+        c_top = getNumber("edit c_top", c_top);
     }
 
     @Override

@@ -28,9 +28,6 @@ import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 
-import badgerlog.annotations.Entry;
-import badgerlog.annotations.EntryType;
-import badgerlog.annotations.UnitConversion;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -41,6 +38,7 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -58,15 +56,20 @@ import swervelib.parser.SwerveDriveConfiguration;
 import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
+import static frc.robot.Utilities.*;
+
 
 public class SwerveSubsystem extends SubsystemBase
 {
-  @Entry(EntryType.SUBSCRIBER)
   private boolean visionEnabled = false;
 
-  @Entry(EntryType.PUBLISHER)
-  @UnitConversion(value = "in")
   public Translation2d mostRecentVisionMeasurement = Translation2d.kZero;
+
+  public void updateDashboard() {
+    visionEnabled = getBoolean("edit visionEnabled", visionEnabled);
+
+    SmartDashboard.putString("mostRecentVisionMeasurement", mostRecentVisionMeasurement.toString());
+  }
 
   /**
    * Swerve drive object.
@@ -132,6 +135,7 @@ public class SwerveSubsystem extends SubsystemBase
     if (visionEnabled) {
       addVisionMeasurement(LIMELIGHT_2PLUS_CENTER_NAME);
     }
+    updateDashboard();
   }
 
   @Override

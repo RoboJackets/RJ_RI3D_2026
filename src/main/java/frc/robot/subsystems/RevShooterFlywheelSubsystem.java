@@ -13,13 +13,14 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import badgerlog.annotations.Entry;
-import badgerlog.annotations.EntryType;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import static frc.robot.Utilities.*;
 
 
 public class RevShooterFlywheelSubsystem extends SubsystemBase {
@@ -29,14 +30,21 @@ public class RevShooterFlywheelSubsystem extends SubsystemBase {
         Coast
     }
 
-    @Entry(EntryType.SUBSCRIBER)
     private static double MAX_VOLTAGE = 11.5; // can be changed
 
-    @Entry(EntryType.SUBSCRIBER)
     private double toggledDutyCycleSpeed = 1D;
 
-    @Entry(EntryType.PUBLISHER)
     private double targetTopRPM = 0, currentTopRPM = 0, targetBottomRPM = 0, currentBottomRPM = 0;
+
+    private void updateSmartDashboard() {
+        MAX_VOLTAGE = getNumber("edit SHOOTER MAX_VOLTAGE", MAX_VOLTAGE);
+        toggledDutyCycleSpeed = getNumber("edit SHOOTER toggledDutyCycleSpeed", toggledDutyCycleSpeed);
+
+        SmartDashboard.putNumber("view targetTopRPM SHOOTER", targetTopRPM);
+        SmartDashboard.putNumber("view currentTopRPM SHOOTER", currentTopRPM);
+        SmartDashboard.putNumber("view targetBottomRPM SHOOTER", targetBottomRPM);
+        SmartDashboard.putNumber("view currentBottomRPM SHOOTER", currentBottomRPM);
+    }
 
     private static final double SHOOTER_TO_MOTOR_RATIO = 24D / 18D; // X shooter rotations : 1 motor rotation
 
@@ -113,6 +121,7 @@ public class RevShooterFlywheelSubsystem extends SubsystemBase {
             }
         }
         
+        updateSmartDashboard();
     }
 
     public double getCurrentTopRPM() {
