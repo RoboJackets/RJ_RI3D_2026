@@ -32,7 +32,7 @@ public class RevShooterFlywheelSubsystem extends SubsystemBase {
 
     private static double MAX_VOLTAGE = 11.5; // can be changed
 
-    private double toggledDutyCycleSpeed = 1D;
+    private double toggledDutyCycleSpeed = 0.35;
 
     private double targetTopRPM = 0, currentTopRPM = 0, targetBottomRPM = 0, currentBottomRPM = 0;
 
@@ -53,8 +53,8 @@ public class RevShooterFlywheelSubsystem extends SubsystemBase {
     @SuppressWarnings("unused")
     private static final double TOP_DIAMETER_INCHES = 4, BOTTOM_DIAMETER_INCHES = 3;
 
-    private static final boolean TOP_INVERTED = false,
-            BOTTOM_INVERTED = false;
+    private static final boolean TOP_INVERTED = true,
+            BOTTOM_INVERTED = true;
     
 
     private SparkMax topSpark, bottomSpark;

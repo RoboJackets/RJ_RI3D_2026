@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -142,14 +143,20 @@ public class RobotContainer {
     new Trigger(() -> enableIndexerDash).whileTrue(dashboardCommands.indexerPowerCommand(indexer));
     new Trigger(() -> enableIntakeDash).whileTrue(dashboardCommands.intakePowerCommand(intake));
 
-    new Trigger(() -> DriverStation.isEnabled()).whileTrue((new InstantCommand(() -> {
+    driverXbox.leftBumper()
+        .whileTrue(drivebase.drive(SwerveInputStream.of(drivebase.getSwerveDrive(), () -> 1, () -> 1)));
+
+    new Trigger(() -> DriverStation.isEnabled()).whileTrue(((new InstantCommand(() -> {
       LimelightHelpers.setLEDMode_ForceOn(LIMELIGHT_2PLUS_CENTER_NAME);
-    }, null)
-        .andThen(new WaitCommand(0.5)
-            .andThen(new InstantCommand(() -> {
-              LimelightHelpers.setLEDMode_ForceOff(LIMELIGHT_2PLUS_CENTER_NAME);
-            }, null)).andThen(new WaitCommand(0.5)))
-        .repeatedly()));
+    }, new Subsystem[] {})
+        .andThen(new WaitCommand(0.25))
+        .andThen(new InstantCommand(() -> {
+          LimelightHelpers.setLEDMode_ForceOff(LIMELIGHT_2PLUS_CENTER_NAME);
+        }, new Subsystem[] {}))
+        .andThen(new WaitCommand(0.25)))
+        .repeatedly()).finallyDo(() -> {
+          LimelightHelpers.setLEDMode_ForceOn(LIMELIGHT_2PLUS_CENTER_NAME);
+        }));
   }
 
   /**
