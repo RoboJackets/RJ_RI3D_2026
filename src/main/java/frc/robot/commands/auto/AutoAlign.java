@@ -1,11 +1,10 @@
 package frc.robot.commands.auto;
 
-import badgerlog.annotations.Entry;
-import badgerlog.annotations.EntryType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -42,19 +41,21 @@ public class AutoAlign extends Command {
     @Override
     public void execute() {
         swerve.driveFieldOriented(swerveInputStream);
+
+        SmartDashboard.putBoolean("view Auto Align Running", isScheduled());
+        SmartDashboard.putBoolean("view Aligned", readyToShoot());
+
     }
 
     double getHubDistance() {
         return distanceInches;
     }
 
-    @Entry(EntryType.PUBLISHER)
     @Override
     public boolean isScheduled() {
         return super.isScheduled();
     }
 
-    @Entry(EntryType.PUBLISHER)
     public boolean readyToShoot() {
         return Math.abs(swerveInputStream.get().omegaRadiansPerSecond) < ROTATING_FAST_RAD_CUTOFF;   
     }

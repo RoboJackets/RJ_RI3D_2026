@@ -11,46 +11,47 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
-import badgerlog.annotations.Entry;
-import badgerlog.annotations.EntryType;
-import badgerlog.annotations.Table;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class SettableSpark extends SubsystemBase {
-    @SuppressWarnings("unused") // used by @Table
-    private final String name;
+    private String name;
 
-    @Entry(EntryType.SUBSCRIBER)
-    @Table("{name}")
-    public double defaultSpeed = 1;
+    private DoubleSupplier defaultSpeed;
 
-    @Entry(EntryType.PUBLISHER)
-    @Table("{name}")
     private double currentPower;
 
     private final SparkMax motor;
 
-    public SettableSpark(final String name, int can_id, boolean invert, double defaultSpeed) {
+    private boolean invert;
+
+    public SettableSpark(final String name, int can_id, boolean invert, DoubleSupplier defaultSpeed, MotorType motorType) {
         super(name);
         this.name = name;
 
-        motor = new SparkMax(can_id, MotorType.kBrushless);
+        motor = new SparkMax(can_id, motorType);
         final SparkMaxConfig config = new SparkMaxConfig();
 
         config.idleMode(IdleMode.kBrake).smartCurrentLimit(40);
 
         config.inverted(invert); // intake inversion
         motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        
+        this.defaultSpeed = defaultSpeed;
+        
+        this.invert = invert;
     }
 
+    public SettableSpark(final String name, int can_id, boolean invert, DoubleSupplier defaultSpeed) {
+        this(name, can_id, invert, defaultSpeed, MotorType.kBrushless);
+    }
+    
     public SettableSpark(final String name, int can_id, boolean invert) {
-        this(name, can_id, invert, 1D);
+        this(name, can_id, invert, () -> 1D);
     }
 
     public void setPower(double power) {
-        motor.set(power);
+        motor.set(power * (this.invert ? -1 : 1));
         this.currentPower = power;
     }
 
@@ -59,7 +60,7 @@ public class SettableSpark extends SubsystemBase {
     }
 
     public Command getOnCommand(boolean invert) {
-        return getSetPowerCommand(defaultSpeed * (invert ? -1 : 1));
+        return getSetPowerCommand(defaultSpeed.getAsDouble() * (invert ? -1 : 1));
     }
 
     public Command getSetPowerCommand(double power) {
@@ -81,5 +82,9 @@ public class SettableSpark extends SubsystemBase {
     @Override
     public String getName() {
         return name;
+    }
+
+    public double getPower() {
+        return currentPower;
     }
 }

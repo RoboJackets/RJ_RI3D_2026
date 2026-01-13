@@ -1,17 +1,18 @@
 package frc.robot.commands.auto;
 
-import badgerlog.annotations.Entry;
-import badgerlog.annotations.EntryType;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import swervelib.SwerveInputStream;
+import static frc.robot.Utilities.*;
+
 
 public class OldAutoAlign extends Command {
     // https://github.com/team1306/Robot2024/blob/main/src/main/java/frc/robot/commands/drive/ShooterDriveCommand.java
@@ -19,7 +20,6 @@ public class OldAutoAlign extends Command {
     private PIDController controller;
     // shooting location must have an offset
 
-    @Entry(EntryType.SUBSCRIBER)
     public static double kP = 0.01, kI = 0, kD = 0;
     private static final double TOLERANCE_DEGREES = 5;
     private final Translation3d hubLocation;
@@ -73,9 +73,14 @@ public class OldAutoAlign extends Command {
         outputPower = MathUtil.clamp(controller.calculate(delta), -1, -1);
 
         swerve.driveFieldOriented(swerveInputStream);
+
+        SmartDashboard.putBoolean("view readyToShoot", readyToShoot());
+
+        kP = getNumber("edit oldautoalign kP", kP);
+        kI = getNumber("edit oldautoalign kI", kI);
+        kD = getNumber("edit oldautoalign kD", kD);
     }
     
-    @Entry(EntryType.PUBLISHER)
     public boolean readyToShoot() {
         return Math.abs(delta) < TOLERANCE_DEGREES;
     }
