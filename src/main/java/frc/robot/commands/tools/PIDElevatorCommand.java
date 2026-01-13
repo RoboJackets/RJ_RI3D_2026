@@ -52,4 +52,9 @@ public class PIDElevatorCommand extends Command {
 
         SmartDashboard.putNumber("view target", target);
     }
+
+    @Override
+    public void end(boolean interrupted) {
+        elevator.setPower(0D);
+    }
 }
