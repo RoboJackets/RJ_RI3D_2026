@@ -48,6 +48,7 @@ import swervelib.telemetry.SwerveDriveTelemetry;
  * Example PhotonVision class to aid in the pursuit of accurate odometry. Taken from
  * https://gitlab.com/ironclad_code/ironclad-2024/-/blob/master/src/main/java/frc/robot/vision/Vision.java?ref_type=heads
  */
+@Deprecated // DO NOT USE! This is meant for Photon, not Limelight!
 public class Vision
 {
   private static Pose2d LIMELIGHT_POSE = new Pose2d();

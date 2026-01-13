@@ -1,5 +1,6 @@
 package frc.robot.subsystems.base;
 
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -17,7 +18,7 @@ import badgerlog.annotations.Table;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class SettableSpark extends SubsystemBase{
+public class SettableSpark extends SubsystemBase {
     @SuppressWarnings("unused") // used by @Table
     private final String name;
 
@@ -50,7 +51,6 @@ public class SettableSpark extends SubsystemBase{
 
     public void setPower(double power) {
         motor.set(power);
-        motor.getEncoder();
         this.currentPower = power;
     }
 
@@ -72,5 +72,14 @@ public class SettableSpark extends SubsystemBase{
         }, () -> {
             setPower(0);
         });
+    }
+
+    public RelativeEncoder getEncoder() {
+        return motor.getEncoder();
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

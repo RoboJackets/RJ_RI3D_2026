@@ -41,11 +41,6 @@ public final class Constants
 
   public static class OperatorConstants
   {
-
-    // Joystick Deadband
-    public static final double DEADBAND        = 0.1;
-    public static final double LEFT_Y_DEADBAND = 0.1;
-    public static final double RIGHT_X_DEADBAND = 0.1;
     public static final double TURN_CONSTANT    = 6;
   }
 
@@ -67,4 +62,6 @@ public final class Constants
       translation3d = new Translation3d(Units.inchesToMeters(x), Units.inchesToMeters(y), Units.inchesToMeters(z));
     }
   }
+
+  public static final String LIMELIGHT_2PLUS_CENTER_NAME = "limelight1";
 }

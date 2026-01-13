@@ -4,17 +4,19 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.NamedCommands;
-
-
+import badgerlog.annotations.Entry;
+import badgerlog.annotations.EntryType;
+import badgerlog.annotations.Table;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.subsystems.BasicElevator;
+import frc.robot.commands.auto.AlignAndFlywheel;
+import frc.robot.commands.auto.AutoAlign;
+import frc.robot.commands.tools.PIDElevatorCommand;
+import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.IntakeAndTransferSubsystem;
 import frc.robot.subsystems.RevShooterFlywheelSubsystem;
@@ -28,30 +30,60 @@ import swervelib.SwerveInputStream;
  * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+  @Entry(EntryType.SUBSCRIBER)
+  public static double POW = 2, MULT_X = -.25, MULT_Y = -.25, MULT_ROT = .5, DEADBAND = .05;
+
+  @Entry(EntryType.SUBSCRIBER)
+  public static boolean driveRobotOriented = false, controlFlywheelWithAutoAlign = false;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandXboxController driverXbox = new CommandXboxController(0);
   // The robot's subsystems and commands are defined here...
-  private final SwerveSubsystem drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
-                                                                                 "swerve"));
+  private final SwerveSubsystem drivebase;
 
   // /**
   //  * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
-  //  */
-  SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                () -> driverXbox.getRawAxis(1) * -.25,
-                                                                () -> driverXbox.getRawAxis(0) * -.25)
-                                                            .withControllerRotationAxis(()->driverXbox.getRawAxis(2))
-                                                            .deadband(OperatorConstants.DEADBAND)
-                                                            .scaleTranslation(0.8)
-                                                            .allianceRelativeControl(false);
+  //  
+  private final SwerveInputStream driveAngularVelocity;
 
-  private final BasicElevator climber;
+  private final ElevatorSubsystem climber;
   private final IntakeAndTransferSubsystem intake;
   private final RevShooterFlywheelSubsystem shooter;
   private final Indexer indexer;
 
-  
+  private final Command driveFieldOrientedCommand, driveRobotOrientedCommand;
+
+  @Entry(EntryType.SUBSCRIBER)
+  @Table("DashboardCommands")
+  private boolean enableClimberPowDash = false, enableClimberPosDash = false, enableShooterDash = false,
+      enableIndexerDash = false, enableIntakeDash = false;
+
+  public static class DashboardCommands {
+    @Entry(EntryType.SUBSCRIBER)
+    @Table("DashboardCommands") // shouldn't be needed?
+    private static double climberPower, climberPosition, topShooterFlywheelPower,
+            bottomShooterFlywheelPower, indexerPower, intakePower;
+
+    public static Command climberPowerCommand(ElevatorSubsystem elevator) {
+        return elevator.getSetPowerCommand(() -> climberPower);
+    }
+
+    public static Command climberPositionCommand(ElevatorSubsystem elevator) {
+        return new PIDElevatorCommand(elevator, () -> climberPosition);
+    }
+
+    public static Command shooterPowerCommand(RevShooterFlywheelSubsystem shooter) {
+        return shooter.getSetPowerCommand(() -> topShooterFlywheelPower, () -> bottomShooterFlywheelPower);
+    }
+
+    public static Command indexerPowerCommand(Indexer indexer) {
+        return indexer.getSetPowerCommand(() -> indexerPower);
+    }
+
+    public static Command intakePowerCommand(IntakeAndTransferSubsystem intake) {
+        return intake.getSetPowerCommand(() -> intakePower);
+    }
+  }
 
   /**
    * Clone's the angular velocity input stream and converts it to a robotRelative input stream.
@@ -68,15 +100,30 @@ public class RobotContainer {
    */
   public RobotContainer()
   {
-    // Configure the trigger bindings
-    configureBindings();
-    DriverStation.silenceJoystickConnectionWarning(true);
-    NamedCommands.registerCommand("test", Commands.print("I EXIST"));
+    drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
+    
+    driveAngularVelocity = SwerveInputStream.of(
+        drivebase.getSwerveDrive(),
+        () -> Math.pow(driverXbox.getRawAxis(1), POW) * MULT_X,
+        () -> Math.pow(driverXbox.getRawAxis(0), POW) * MULT_Y
+    ).withControllerRotationAxis(()->driverXbox.getRawAxis(2) * MULT_ROT)
+        .deadband(DEADBAND)
+        .scaleTranslation(1)
+        .allianceRelativeControl(true);
 
-    climber = new BasicElevator();
+    driveFieldOrientedCommand = drivebase.driveFieldOriented(driveAngularVelocity);
+    driveRobotOrientedCommand = drivebase.drive(driveAngularVelocity);
+
+    // Configure the trigger bindings
+    DriverStation.silenceJoystickConnectionWarning(true);
+
+    climber = new ElevatorSubsystem();
     intake = new IntakeAndTransferSubsystem();
     shooter = new RevShooterFlywheelSubsystem();
     indexer = new Indexer();
+
+
+    configureBindings();
   }
 
   /**
@@ -88,11 +135,13 @@ public class RobotContainer {
    */
   private void configureBindings()
   {
-      Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
-    
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+      drivebase.setDefaultCommand(Commands.either(
+          driveRobotOrientedCommand,
+          driveFieldOrientedCommand,
+          () -> driveRobotOriented
+      ));
 
-      driverXbox.leftStick().onTrue(Commands.runOnce(drivebase::zeroGyro));
+      driverXbox.leftStick().onTrue(Commands.runOnce(drivebase::zeroGyroWithAlliance));
 
       driverXbox.a().toggleOnTrue(intake.getOnCommand());
 
@@ -101,6 +150,20 @@ public class RobotContainer {
 
       driverXbox.povUp().whileTrue(climber.getOnCommand(false));
       driverXbox.povDown().whileTrue(climber.getOnCommand(true));
+
+      driverXbox.rightBumper().toggleOnTrue(
+          Commands.either(
+              new AutoAlign(drivebase, driveAngularVelocity),
+              new AlignAndFlywheel(drivebase, driveAngularVelocity, shooter),
+              () -> controlFlywheelWithAutoAlign
+          ).until(driverXbox.axisGreaterThan(2, .5))
+      );
+
+      new Trigger(() -> enableClimberPowDash).whileTrue(DashboardCommands.climberPowerCommand(climber));
+      new Trigger(() -> enableClimberPosDash).whileTrue(DashboardCommands.climberPositionCommand(climber));
+      new Trigger(() -> enableShooterDash).whileTrue(DashboardCommands.shooterPowerCommand(shooter));
+      new Trigger(() -> enableIndexerDash).whileTrue(DashboardCommands.indexerPowerCommand(indexer));
+      new Trigger(() -> enableIntakeDash).whileTrue(DashboardCommands.intakePowerCommand(intake));
   }
     
 

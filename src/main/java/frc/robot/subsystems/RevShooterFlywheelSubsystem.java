@@ -155,14 +155,30 @@ public class RevShooterFlywheelSubsystem extends SubsystemBase {
      * @return
      */
     public Command getSetPowerCommand(final DoubleSupplier powSupplier, final double topMult, final double bottomMult) {
+        return getSetPowerCommand(powSupplier, powSupplier, topMult, bottomMult);
+    }
+
+    public Command getSetPowerCommand(final DoubleSupplier topPowerSupplier, final DoubleSupplier bottomPowerSupplier) {
+        return getSetPowerCommand(topPowerSupplier, bottomPowerSupplier, 1, 1);
+    }
+
+    /**
+     * simple power command meant for usage by controller, smartdashboard, etc.
+     * @param topPowerSupplier duty cycle power double supplier for top shooter wheel --- should be in [-1, 1]
+     * @param bottomPowerSupplier same as above, but for bottom shooter wheel
+     * @param topMult should be [-1, 1]. could be used to make one wheel move slower than other
+     * @param bottomMult same restrictions as top mult
+     * @return
+     */
+    public Command getSetPowerCommand(final DoubleSupplier topPowerSupplier, final DoubleSupplier bottomPowerSupplier,
+            final double topMult, final double bottomMult) {
         final double correctedTopMult = MathUtil.clamp(topMult, -1, 1) * MAX_RPM;
         final double correctedBottomMult = MathUtil.clamp(bottomMult, -1, 1) * MAX_RPM;
 
         return this.runOnce(() -> controlMode = ControlMode.DutyCycle)
             .andThen(this.runEnd(() -> {
-                    final double target = powSupplier.getAsDouble();
-                    setTopTargetVelocity(target * correctedTopMult);
-                    setBottomTargetVelocity(target * correctedBottomMult);
+                    setTopTargetVelocity(topPowerSupplier.getAsDouble() * correctedTopMult);
+                    setBottomTargetVelocity(bottomPowerSupplier.getAsDouble() * correctedBottomMult);
                 }, () -> {
                     setVelocity(0);
                 }

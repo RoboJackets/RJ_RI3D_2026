@@ -5,6 +5,7 @@
 package frc.robot.subsystems.swervedrive;
 
 import static edu.wpi.first.units.Units.Meter;
+import static frc.robot.Constants.LIMELIGHT_2PLUS_CENTER_NAME;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -17,6 +18,10 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
+
+import badgerlog.annotations.Entry;
+import badgerlog.annotations.EntryType;
+import badgerlog.annotations.UnitConversion;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -27,13 +32,14 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
+import frc.robot.LimelightHelpers;
+import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.subsystems.swervedrive.Vision.Cameras;
 import java.io.File;
 import java.io.IOException;
@@ -56,19 +62,17 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase
 {
+  @Entry(EntryType.SUBSCRIBER)
+  private boolean visionEnabled = false;
+
+  @Entry(EntryType.PUBLISHER)
+  @UnitConversion(value = "in")
+  public Translation2d mostRecentVisionMeasurement = Translation2d.kZero;
 
   /**
    * Swerve drive object.
    */
   private final SwerveDrive swerveDrive;
-  /**
-   * Enable vision odometry updates while driving.
-   */
-  private final boolean     visionDriveTest = false;
-  /**
-   * PhotonVision class to keep an accurate odometry.
-   */
-  private       Vision      vision;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -103,12 +107,7 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.setModuleEncoderAutoSynchronize(false,
                                                 1); // Enable if you want to resynchronize your absolute encoders and motor encoders periodically when they are not moving.
     // swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder and push the offsets onto it. Throws warning if not possible
-    if (visionDriveTest)
-    {
-      setupPhotonVision();
-      // Stop the odometry thread if we are using vision that way we can synchronize updates better.
-      swerveDrive.stopOdometryThread();
-    }
+
     setupPathPlanner();
     RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::zeroGyroWithAlliance));
   }
@@ -128,23 +127,11 @@ public class SwerveSubsystem extends SubsystemBase
                                              Rotation2d.fromDegrees(0)));
   }
 
-  /**
-   * Setup the photon vision class.
-   */
-  public void setupPhotonVision()
-  {
-    vision = new Vision(swerveDrive::getPose, swerveDrive.field);
-  }
-
   @Override
   public void periodic()
   {
-    // When vision is enabled we must manually update odometry in SwerveDrive
-    if (visionDriveTest)
-    {
-      swerveDrive.updateOdometry();
-      //publish odometry
-      vision.updatePoseEstimation(swerveDrive);
+    if (visionEnabled) {
+      addVisionMeasurement(LIMELIGHT_2PLUS_CENTER_NAME);
     }
   }
 
@@ -505,6 +492,9 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.drive(velocity);
   }
 
+  public Command drive(Supplier<ChassisSpeeds> velocity) {
+    return run(() -> drive(velocity.get()));
+  }
 
   /**
    * Get the swerve drive kinematics object.
@@ -566,6 +556,7 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.zeroGyro();
   }
 
+
   /**
    * Checks if the alliance is red, defaults to false if alliance isn't available.
    *
@@ -580,7 +571,7 @@ public class SwerveSubsystem extends SubsystemBase
   /**
    * This will zero (calibrate) the robot to assume the current position is facing forward
    * <p>
-   * If red alliance rotate the robot 180 after the drviebase zero command
+   * If red alliance rotate the robot 180 after the drivebase zero command
    */
   public void zeroGyroWithAlliance()
   {
@@ -713,6 +704,23 @@ public class SwerveSubsystem extends SubsystemBase
   public Rotation2d getPitch()
   {
     return swerveDrive.getPitch();
+  }
+
+  public void addVisionMeasurement(String limelightName) {
+    LimelightHelpers.SetRobotOrientation(limelightName, swerveDrive.getPose()
+                .getRotation()
+                .getDegrees(), 0, 0, 0, 0, 0);
+    PoseEstimate poseEstimateMT2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
+    if (poseEstimateMT2 == null) return;
+    else if (poseEstimateMT2.tagCount >= 1) {
+      mostRecentVisionMeasurement = poseEstimateMT2.pose.getTranslation();
+      Pose2d pose = new Pose2d(mostRecentVisionMeasurement, swerveDrive.getPose().getRotation());
+      swerveDrive.addVisionMeasurement(pose, poseEstimateMT2.timestampSeconds);
+    }
+  }
+
+  public Translation2d getMostRecentVisionMeasurement() {
+    return mostRecentVisionMeasurement;
   }
 
   /**

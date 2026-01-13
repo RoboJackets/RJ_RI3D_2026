@@ -4,9 +4,9 @@ import badgerlog.annotations.Entry;
 import badgerlog.annotations.EntryType;
 import frc.robot.subsystems.RevShooterFlywheelSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+import swervelib.SwerveInputStream;
 
 public class AlignAndFlywheel extends AutoAlign {
-
     @Entry(EntryType.SUBSCRIBER)
     private double a_top, b_top, c_top;
     @Entry(EntryType.SUBSCRIBER)
@@ -35,13 +35,13 @@ public class AlignAndFlywheel extends AutoAlign {
     private RevShooterFlywheelSubsystem shooter;
 
     private double delTop, delBot;
-    private final double SPEED_DIFF_THRESHOLD = 1;
+    private final double SPEED_DIFF_THRESHOLD = 25;
 
-    public AlignAndFlywheel(SwerveSubsystem swerve, RevShooterFlywheelSubsystem shooter) {
-        super(swerve);
-
+    public AlignAndFlywheel(SwerveSubsystem swerve, SwerveInputStream swerveInputStream, RevShooterFlywheelSubsystem shooter) {
+        super(swerve, swerveInputStream);
         this.shooter = shooter;
-        this.addRequirements(swerve);
+
+        this.addRequirements(swerve, shooter);
     }
 
     @Override
@@ -62,9 +62,11 @@ public class AlignAndFlywheel extends AutoAlign {
         botRegression.b = b_bot;
         botRegression.c = c_bot;
 
-        double topTarget = topRegression.calculate(distanceInches);
+        final double hubDistance = getHubDistance();
+
+        double topTarget = topRegression.calculate(hubDistance);
         delTop = topTarget - shooter.getCurrentTopRPM();
-        double botTarget = botRegression.calculate(distanceInches);
+        double botTarget = botRegression.calculate(hubDistance);
         delBot = botTarget - shooter.getCurrentBottomRPM();
 
         shooter.setTopTargetVelocity(topTarget);
@@ -72,8 +74,8 @@ public class AlignAndFlywheel extends AutoAlign {
     }
 
     @Override
-    public boolean isFinished() {
-        return super.isFinished() 
+    public boolean readyToShoot() {
+        return super.readyToShoot()
         && Math.abs(delBot) < SPEED_DIFF_THRESHOLD
         && Math.abs(delTop) < SPEED_DIFF_THRESHOLD;
     }
