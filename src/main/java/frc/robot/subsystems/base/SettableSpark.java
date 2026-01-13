@@ -60,7 +60,7 @@ public class SettableSpark extends SubsystemBase {
     }
 
     public Command getOnCommand(boolean invert) {
-        return getSetPowerCommand(defaultSpeed.getAsDouble() * (invert ? -1 : 1));
+        return getSetPowerCommand(() -> defaultSpeed.getAsDouble() * (invert ? -1 : 1));
     }
 
     public Command getSetPowerCommand(double power) {
