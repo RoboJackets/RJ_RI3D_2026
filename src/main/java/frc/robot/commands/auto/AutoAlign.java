@@ -3,6 +3,7 @@ package frc.robot.commands.auto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -26,8 +27,9 @@ public class AutoAlign extends Command {
 
 
     private double a_move, b_move, c_move;
-    
-    private Regression shootOnMoveRegression = new Regression(a_move, b_move, c_move);
+    private boolean shootOnMove = false;
+
+    private Regression timeOfFlightRegression = new Regression(a_move, b_move, c_move);
 
 
     public AutoAlign(SwerveSubsystem swerve, SwerveInputStream swerveInputStream) {
@@ -49,9 +51,21 @@ public class AutoAlign extends Command {
     
     @Override
     public void execute() {
-        shootOnMoveRegression.a = a_move;
-        shootOnMoveRegression.b = b_move;
-        shootOnMoveRegression.c = c_move;
+        timeOfFlightRegression.a = a_move;
+        timeOfFlightRegression.b = b_move;
+        timeOfFlightRegression.c = c_move;
+
+        Pose2d botPose = swerve.getPose();
+
+        if (shootOnMove) {
+            double timeOfFlight = timeOfFlightRegression.calculate(distanceInches);
+            final Twist2d effectFromRobot = swerve.getRobotVelocity().toTwist2d(timeOfFlight);
+            botPose = botPose.exp(effectFromRobot);
+        }
+
+        Translation2d targetPos = new Translation2d(hubLocation.getX(), hubLocation.getY()).minus(botPose.getTranslation());
+        
+        distanceInches = targetPos.getNorm();
 
         swerve.driveFieldOriented(swerveInputStream);
 
@@ -61,6 +75,9 @@ public class AutoAlign extends Command {
         a_move = getNumber("edit a_move", a_move);
         b_move = getNumber("edit b_move", b_move);
         c_move = getNumber("edit c_move", c_move);
+
+        shootOnMove = getBoolean("edit timeOfFlight", shootOnMove);
+
     }
 
     double getHubDistance() {
