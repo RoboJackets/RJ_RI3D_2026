@@ -6,16 +6,15 @@ package frc.robot;
 
 import badgerlog.annotations.Entry;
 import badgerlog.annotations.EntryType;
-import badgerlog.annotations.Table;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.DashboardCommands;
 import frc.robot.commands.auto.AlignAndFlywheel;
 import frc.robot.commands.auto.AutoAlign;
-import frc.robot.commands.tools.PIDElevatorCommand;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.IntakeAndTransferSubsystem;
@@ -54,36 +53,11 @@ public class RobotContainer {
   private final Command driveFieldOrientedCommand, driveRobotOrientedCommand;
 
   @Entry(EntryType.SUBSCRIBER)
-  @Table("DashboardCommands")
+//   @Table("DashboardCommands")
   private boolean enableClimberPowDash = false, enableClimberPosDash = false, enableShooterDash = false,
       enableIndexerDash = false, enableIntakeDash = false;
 
-  public static class DashboardCommands {
-    @Entry(EntryType.SUBSCRIBER)
-    @Table("DashboardCommands") // shouldn't be needed?
-    private static double climberPower, climberPosition, topShooterFlywheelPower,
-            bottomShooterFlywheelPower, indexerPower, intakePower;
-
-    public static Command climberPowerCommand(ElevatorSubsystem elevator) {
-        return elevator.getSetPowerCommand(() -> climberPower);
-    }
-
-    public static Command climberPositionCommand(ElevatorSubsystem elevator) {
-        return new PIDElevatorCommand(elevator, () -> climberPosition);
-    }
-
-    public static Command shooterPowerCommand(RevShooterFlywheelSubsystem shooter) {
-        return shooter.getSetPowerCommand(() -> topShooterFlywheelPower, () -> bottomShooterFlywheelPower);
-    }
-
-    public static Command indexerPowerCommand(Indexer indexer) {
-        return indexer.getSetPowerCommand(() -> indexerPower);
-    }
-
-    public static Command intakePowerCommand(IntakeAndTransferSubsystem intake) {
-        return intake.getSetPowerCommand(() -> intakePower);
-    }
-  }
+  
 
   /**
    * Clone's the angular velocity input stream and converts it to a robotRelative input stream.
@@ -150,7 +124,6 @@ public class RobotContainer {
 
       driverXbox.povUp().whileTrue(climber.getOnCommand(false));
       driverXbox.povDown().whileTrue(climber.getOnCommand(true));
-
       driverXbox.rightBumper().toggleOnTrue(
           Commands.either(
               new AutoAlign(drivebase, driveAngularVelocity),
@@ -158,7 +131,6 @@ public class RobotContainer {
               () -> controlFlywheelWithAutoAlign
           ).until(driverXbox.axisGreaterThan(2, .5))
       );
-
       new Trigger(() -> enableClimberPowDash).whileTrue(DashboardCommands.climberPowerCommand(climber));
       new Trigger(() -> enableClimberPosDash).whileTrue(DashboardCommands.climberPositionCommand(climber));
       new Trigger(() -> enableShooterDash).whileTrue(DashboardCommands.shooterPowerCommand(shooter));

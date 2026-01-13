@@ -19,22 +19,27 @@
     "###/FMSInfo": {
       "Collapsed": "0",
       "Pos": "-5,38",
-      "Size": "217,194"
+      "Size": "202,194"
     },
     "###/SmartDashboard/Field": {
       "Collapsed": "0",
       "Pos": "166,24",
       "Size": "740,373"
     },
+    "###/SmartDashboard/Motors": {
+      "Collapsed": "0",
+      "Pos": "60,60",
+      "Size": "300,150"
+    },
     "###FMS": {
       "Collapsed": "0",
       "Pos": "4,414",
-      "Size": "202,214"
+      "Size": "336,158"
     },
     "###Joysticks": {
       "Collapsed": "0",
       "Pos": "253,438",
-      "Size": "976,278"
+      "Size": "976,219"
     },
     "###Keyboard 0 Settings": {
       "Collapsed": "0",
@@ -43,7 +48,7 @@
     },
     "###NetworkTables": {
       "Collapsed": "0",
-      "Pos": "786,223",
+      "Pos": "773,112",
       "Size": "750,236"
     },
     "###NetworkTables Info": {
@@ -58,7 +63,7 @@
     },
     "###System Joysticks": {
       "Collapsed": "0",
-      "Pos": "93,263",
+      "Pos": "142,297",
       "Size": "232,254"
     },
     "###Timing": {

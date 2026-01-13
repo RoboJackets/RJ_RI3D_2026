@@ -14,7 +14,6 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import badgerlog.annotations.Entry;
 import badgerlog.annotations.EntryType;
 import badgerlog.annotations.Table;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -23,11 +22,11 @@ public class SettableSpark extends SubsystemBase {
     private final String name;
 
     @Entry(EntryType.SUBSCRIBER)
-    @Table("{name}")
+    // @Table("{name}")
     public double defaultSpeed = 1;
 
     @Entry(EntryType.PUBLISHER)
-    @Table("{name}")
+    // @Table("{name}")
     private double currentPower;
 
     private final SparkMax motor;
@@ -44,7 +43,7 @@ public class SettableSpark extends SubsystemBase {
         config.inverted(invert); // intake inversion
         motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
-
+    
     public SettableSpark(final String name, int can_id, boolean invert) {
         this(name, can_id, invert, 1D);
     }

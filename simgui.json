@@ -68,6 +68,7 @@
       "/SmartDashboard/Motors": "Alerts",
       "/SmartDashboard/PathPlanner": "Alerts",
       "/SmartDashboard/Pigeon 2 (v6) [13]": "Gyro",
+      "/SmartDashboard/Pigeon 2 (v6) [50]": "Gyro",
       "/SmartDashboard/Pigeon 2 [13]": "Gyro",
       "/SmartDashboard/SendableChooser[0]": "String Chooser",
       "/SmartDashboard/Swerve Drive": "Alerts",
@@ -125,13 +126,19 @@
         "open": true
       },
       "SmartDashboard": {
+        "Alerts": {
+          "open": true
+        },
         "Field": {
           "open": true
         },
-        "open": true,
-        "swerve": {
+        "Motors": {
           "open": true
-        }
+        },
+        "Pigeon 2 (v6) [50]": {
+          "open": true
+        },
+        "open": true
       }
     }
   },
