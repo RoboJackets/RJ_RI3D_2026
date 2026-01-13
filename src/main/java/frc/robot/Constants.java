@@ -48,7 +48,7 @@ public final class Constants
   public static final int BOTTOM_SHOOTER_NEO_CAN_ID = 26;
 
   public static final int INDEXER_CAN_ID = 22;
-  public static final int INTAKE_CAN_ID = 23;
+  public static final int INTAKE_CAN_ID = 21;
   public static final int TRANSFER1_CAN_ID = 24;
   public static final int TRANSFER2_CAN_ID = 29;
   public static final int ELEVATOR1_CAN_ID = 27;

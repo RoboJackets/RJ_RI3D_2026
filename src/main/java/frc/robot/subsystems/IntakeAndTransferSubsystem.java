@@ -12,7 +12,7 @@ import static frc.robot.Constants.*;
 import static frc.robot.Utilities.*;
 
 public class IntakeAndTransferSubsystem extends SubsystemBase {
-    private final SettableSpark intake, transfer1, transfer2;
+    private final SettableSpark intake, transfer1;
 
     private static double intakeSpeed = 1, transferSpeed = 1;
     
@@ -23,32 +23,27 @@ public class IntakeAndTransferSubsystem extends SubsystemBase {
     }
 
     public IntakeAndTransferSubsystem() {
-        intake = new SettableSpark("intake", INTAKE_CAN_ID, false, () -> intakeSpeed, MotorType.kBrushed);
+        intake = new SettableSpark("intake", INTAKE_CAN_ID, true, () -> intakeSpeed, MotorType.kBrushed);
         transfer1 = new SettableSpark("transfer1", TRANSFER1_CAN_ID, false, () -> transferSpeed);
-        transfer2 = new SettableSpark("transfer2", TRANSFER2_CAN_ID, false, () -> transferSpeed);
     }
 
     public void setPower(double intakePower, double transferPower) {
         intake.setPower(intakePower);
         transfer1.setPower(transferPower);
-        transfer2.setPower(transferPower);
     }
 
     public Command getOnCommand() {
         return intake.getOnCommand()
-            .alongWith(transfer1.getOnCommand())
-            .alongWith(transfer2.getOnCommand());
+            .alongWith(transfer1.getOnCommand());
     }
 
     public Command getSetPowerCommand(double power) {
         return intake.getSetPowerCommand(() -> power)
-            .alongWith(transfer1.getSetPowerCommand(() -> power))
-            .alongWith(transfer2.getSetPowerCommand(() -> power));
+            .alongWith(transfer1.getSetPowerCommand(() -> power));
     }
 
     public Command getSetPowerCommand(DoubleSupplier intakePowSupplier, DoubleSupplier transferPowerSupplier) {
         return intake.getSetPowerCommand(intakePowSupplier)
-            .alongWith(transfer1.getSetPowerCommand(transferPowerSupplier))
-            .alongWith(transfer2.getSetPowerCommand(transferPowerSupplier));
+            .alongWith(transfer1.getSetPowerCommand(transferPowerSupplier));
     }
 }
