@@ -23,7 +23,7 @@ public class AutoAlign extends Command {
 
     private final SwerveInputStream swerveInputStream;
 
-    private final Translation2d hubLocation;
+    private Translation2d hubLocation;
 
 
     private double a_move, b_move, c_move;
@@ -34,19 +34,24 @@ public class AutoAlign extends Command {
 
     public AutoAlign(SwerveSubsystem swerve, SwerveInputStream swerveInputStream) {
         this.swerve = swerve;
-        this.hubLocation = (swerve.isRedAlliance() ? Constants.HubLocations.RED.translation3d : Constants.HubLocations.BLUE.translation3d).toTranslation2d();
+        this.hubLocation = Constants.HubLocations.RED.translation3d.toTranslation2d(); // temporary, will be set in initialize
         this.swerveInputStream = swerveInputStream.copy().aim(
             new Pose2d(
                 hubLocation,
                 Rotation2d.kZero
             )
-        ).aimWhile(this::isScheduled);
+        ).aimWhile(true);
 
         addRequirements(swerve);
     }
     
     public AutoAlign(SwerveSubsystem swerve) {
         this(swerve, SwerveInputStream.of(swerve.getSwerveDrive(), () -> 0D, () -> 0D));
+    }
+
+    @Override
+    public void initialize() {
+        this.hubLocation = (swerve.isRedAlliance() ? Constants.HubLocations.RED.translation3d : Constants.HubLocations.BLUE.translation3d).toTranslation2d();
     }
     
     @Override
@@ -66,10 +71,11 @@ public class AutoAlign extends Command {
         Translation2d targetPos = new Translation2d(hubLocation.getX(), hubLocation.getY()).minus(botPose.getTranslation());
         
         distanceInches = targetPos.getNorm();
+        SmartDashboard.putNumber("view Auto Align Distance", distanceInches);
 
-        swerve.driveFieldOriented(swerveInputStream);
+        swerve.driveFieldOriented(swerveInputStream.get());
 
-        SmartDashboard.putBoolean("view Auto Align Running", isScheduled());
+        SmartDashboard.putBoolean("view Auto Align Running", true);
         SmartDashboard.putBoolean("view Aligned", readyToShoot());
 
         a_move = getNumber("edit a_move", a_move);
@@ -91,5 +97,11 @@ public class AutoAlign extends Command {
 
     public boolean readyToShoot() {
         return Math.abs(swerveInputStream.get().omegaRadiansPerSecond) < ROTATING_FAST_RAD_CUTOFF;   
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        SmartDashboard.putBoolean("view Auto Align Running", false);
+        SmartDashboard.putBoolean("view Aligned", false);
     }
 }
