@@ -23,12 +23,12 @@ public class IntakeAndTransferSubsystem extends SubsystemBase {
     }
 
     public IntakeAndTransferSubsystem() {
-        intake = new SettableSpark("intake", INTAKE_CAN_ID, true, () -> intakeSpeed, MotorType.kBrushed);
+        intake = new SettableSpark("intake", INTAKE_CAN_ID, false, () -> intakeSpeed, MotorType.kBrushed);
         transfer1 = new SettableSpark("transfer1", TRANSFER1_CAN_ID, false, () -> transferSpeed);
     }
 
     public void setPower(double intakePower, double transferPower) {
-        intake.setPower(intakePower);
+        intake.setPower(-intakePower);
         transfer1.setPower(transferPower);
     }
 

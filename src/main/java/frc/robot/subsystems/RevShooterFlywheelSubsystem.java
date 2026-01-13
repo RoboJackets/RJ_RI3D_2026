@@ -54,7 +54,7 @@ public class RevShooterFlywheelSubsystem extends SubsystemBase {
     private static final double TOP_DIAMETER_INCHES = 4, BOTTOM_DIAMETER_INCHES = 3;
 
     private static final boolean TOP_INVERTED = false,
-            BOTTOM_INVERTED = true;
+            BOTTOM_INVERTED = false;
     
 
     private SparkMax topSpark, bottomSpark;
