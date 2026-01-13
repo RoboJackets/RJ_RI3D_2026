@@ -46,13 +46,13 @@ public class RobotContainer {
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandXboxController driverXbox = new CommandXboxController(0);
   // The robot's subsystems and commands are defined here...
-  private final SwerveSubsystem drivebase;
+  // private final SwerveSubsystem drivebase;
 
   // /**
   // * Converts driver input into a field-relative ChassisSpeeds that is
   // controlled by angular velocity.
   //
-  private final SwerveInputStream driveAngularVelocity;
+  // private final SwerveInputStream driveAngularVelocity;
 
   private final ElevatorSubsystem climber;
   private final Intake intake;
@@ -60,7 +60,7 @@ public class RobotContainer {
   private final RevShooterFlywheelSubsystem shooter;
   private final Indexer indexer;
 
-  private final Command driveFieldOrientedCommand, driveRobotOrientedCommand;
+  // private final Command driveFieldOrientedCommand, driveRobotOrientedCommand;
 
   private boolean enableClimberPowDash = false, enableClimberPosDash = false, enableShooterDash = false,
       enableIndexerDash = false, enableIntakeDash = false;
@@ -80,19 +80,19 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
-    drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
+    // drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
 
-    driveAngularVelocity = SwerveInputStream.of(
-        drivebase.getSwerveDrive(),
-        () -> Math.pow(driverXbox.getRawAxis(1), POW) * MULT_X,
-        () -> Math.pow(driverXbox.getRawAxis(0), POW) * MULT_Y)
-        .withControllerRotationAxis(() -> driverXbox.getRawAxis(2) * MULT_ROT)
-        .deadband(DEADBAND)
-        .scaleTranslation(1)
-        .allianceRelativeControl(true);
+    // driveAngularVelocity = SwerveInputStream.of(
+    //     drivebase.getSwerveDrive(),
+    //     () -> Math.pow(driverXbox.getRawAxis(1), POW) * MULT_X,
+    //     () -> Math.pow(driverXbox.getRawAxis(0), POW) * MULT_Y)
+    //     .withControllerRotationAxis(() -> driverXbox.getRawAxis(2) * MULT_ROT)
+    //     .deadband(DEADBAND)
+    //     .scaleTranslation(1)
+    //     .allianceRelativeControl(true);
 
-    driveFieldOrientedCommand = drivebase.driveFieldOriented(driveAngularVelocity);
-    driveRobotOrientedCommand = drivebase.drive(driveAngularVelocity);
+    // driveFieldOrientedCommand = drivebase.driveFieldOriented(driveAngularVelocity);
+    // driveRobotOrientedCommand = drivebase.drive(driveAngularVelocity);
 
     // Configure the trigger bindings
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -120,12 +120,12 @@ public class RobotContainer {
    * Flight joysticks}.
    */
   private void configureBindings() {
-    drivebase.setDefaultCommand(Commands.either(
-        driveRobotOrientedCommand,
-        driveFieldOrientedCommand,
-        () -> driveRobotOriented));
+    // drivebase.setDefaultCommand(Commands.either(
+    //     driveRobotOrientedCommand,
+    //     driveFieldOrientedCommand,
+    //     () -> driveRobotOriented));
 
-    driverXbox.leftStick().onTrue(Commands.runOnce(drivebase::zeroGyroWithAlliance));
+    // driverXbox.leftStick().onTrue(Commands.runOnce(drivebase::zeroGyroWithAlliance));
 
     driverXbox.a().whileTrue(intake.getOnCommand());
     driverXbox.x().whileTrue(transfer.getOnCommand());
@@ -136,11 +136,11 @@ public class RobotContainer {
 
     driverXbox.povUp().whileTrue(climber.getOnCommand(false));
     driverXbox.povDown().whileTrue(climber.getOnCommand(true));
-    driverXbox.rightBumper().toggleOnTrue(
-        Commands.either(
-            new AutoAlign(drivebase, driveAngularVelocity),
-            new AlignAndFlywheel(drivebase, driveAngularVelocity, shooter),
-            () -> controlFlywheelWithAutoAlign).until(driverXbox.axisGreaterThan(2, .5)));
+    // driverXbox.rightBumper().toggleOnTrue(
+    //     Commands.either(
+    //         new AutoAlign(drivebase, driveAngularVelocity),
+    //         new AlignAndFlywheel(drivebase, driveAngularVelocity, shooter),
+    //         () -> controlFlywheelWithAutoAlign).until(driverXbox.axisGreaterThan(2, .5)));
 
     final DashboardCommands dashboardCommands = new DashboardCommands();
     // new Trigger(() -> enableClimberPowDash).whileTrue(dashboardCommands.climberPowerCommand(climber));
@@ -149,8 +149,8 @@ public class RobotContainer {
     // new Trigger(() -> enableIndexerDash).whileTrue(dashboardCommands.indexerPowerCommand(indexer));
     // new Trigger(() -> enableIntakeDash).whileTrue(dashboardCommands.intakePowerCommand(intake));
 
-    driverXbox.leftBumper()
-        .whileTrue(drivebase.drive(SwerveInputStream.of(drivebase.getSwerveDrive(), () -> 1, () -> 1)));
+    // driverXbox.leftBumper()
+    //     .whileTrue(drivebase.drive(SwerveInputStream.of(drivebase.getSwerveDrive(), () -> 1, () -> 1)));
 
     new Trigger(() -> DriverStation.isEnabled()).whileTrue(((new InstantCommand(() -> {
       LimelightHelpers.setLEDMode_ForceOn(LIMELIGHT_2PLUS_CENTER_NAME);
@@ -172,11 +172,12 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("New Auto");
+    return Commands.none();
+    // return drivebase.getAutonomousCommand("New Auto");
   }
 
   public void setMotorBrake(boolean brake) {
-    drivebase.setMotorBrake(brake);
+    // drivebase.setMotorBrake(brake);
   }
 
   public void updateDashboard() {
