@@ -1,6 +1,7 @@
 package frc.robot.commands.auto;
 
 import frc.robot.subsystems.RevShooterFlywheelSubsystem;
+import frc.robot.subsystems.RevShooterFlywheelSubsystem.ControlMode;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 import static frc.robot.Utilities.*;
@@ -47,6 +48,7 @@ public class AlignAndFlywheel extends AutoAlign {
     @Override
     public void initialize() {
         super.initialize();
+        shooter.setControlMode(ControlMode.VelocityPID);
     }
 
     @Override
