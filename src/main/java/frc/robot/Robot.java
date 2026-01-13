@@ -55,6 +55,7 @@ public class Robot extends TimedRobot
     {
       DriverStation.silenceJoystickConnectionWarning(true);
     }
+    System.gc();
   }
 
   /**

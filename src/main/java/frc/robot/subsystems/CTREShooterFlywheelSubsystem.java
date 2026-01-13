@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.Constants.BOTTOM_SHOOTER_NEO_CAN_ID;
+import static frc.robot.Constants.TOP_SHOOTER_NEO_CAN_ID;
+import static frc.robot.Utilities.applyTalonFXConfig;
 
 import java.util.function.DoubleSupplier;
 
@@ -13,18 +16,14 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import badgerlog.annotations.Entry;
+import badgerlog.annotations.EntryType;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import badgerlog.annotations.Entry;
-import badgerlog.annotations.EntryType;
 
-import static frc.robot.Utilities.*;
-import static frc.robot.Constants.*;
-
-
-public class ShooterSubsystem extends SubsystemBase {
+public class CTREShooterFlywheelSubsystem extends SubsystemBase {
     public enum ControlMode {
         VelocityPID,
         DutyCycle,
@@ -34,15 +33,17 @@ public class ShooterSubsystem extends SubsystemBase {
     @Entry(EntryType.SUBSCRIBER)
     private static double MAX_VOLTAGE = 11.5; // can be changed
 
+    @Entry(EntryType.SUBSCRIBER)
+    private double toggledDutyCycleSpeed = 1D;
 
     @Entry(EntryType.PUBLISHER)
     private double targetTopRPM = 0, currentTopRPM = 0, targetBottomRPM = 0, currentBottomRPM = 0;
-
 
     private static final double SHOOTER_TO_MOTOR_RATIO = 24D / 18D; // X shooter rotations : 1 motor rotation
 
     public static final double MAX_RPM = Math.round(SHOOTER_TO_MOTOR_RATIO * 6000);
 
+    @SuppressWarnings("unused")
     private static final double TOP_DIAMETER_INCHES = 4, BOTTOM_DIAMETER_INCHES = 3;
 
     private static final InvertedValue TOP_INVERTED = InvertedValue.Clockwise_Positive,
@@ -58,9 +59,9 @@ public class ShooterSubsystem extends SubsystemBase {
     private DutyCycleOut dutyCycleTop = new DutyCycleOut(0D), dutyCycleBottom = new DutyCycleOut(0D);
     private NeutralOut coastTop = new NeutralOut(), coastBottom = new NeutralOut();
 
-    public ControlMode controlMode = ControlMode.VelocityPID;
+    private ControlMode controlMode = ControlMode.VelocityPID;
     
-    public ShooterSubsystem() {
+    public CTREShooterFlywheelSubsystem() {
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         config.Slot0.kS = 0.1; // picked randomly from CTRE example
@@ -78,9 +79,16 @@ public class ShooterSubsystem extends SubsystemBase {
         applyTalonFXConfig(topKraken, config.withMotorOutput(new MotorOutputConfigs().withInverted(TOP_INVERTED)));
         applyTalonFXConfig(bottomKraken, config.withMotorOutput(new MotorOutputConfigs().withInverted(BOTTOM_INVERTED)));
 
-        topKraken = new TalonFX(TOP_SHOOTER_KRAKEN_CAN_ID);
-        bottomKraken = new TalonFX(BOTTOM_SHOOTER_KRAKEN_CAN_ID);
+        topKraken = new TalonFX(TOP_SHOOTER_NEO_CAN_ID);
+        bottomKraken = new TalonFX(BOTTOM_SHOOTER_NEO_CAN_ID);
+    }
 
+    public ControlMode getControlMode() {
+        return controlMode;
+    }
+
+    public void setControlMode(ControlMode mode) {
+        controlMode = mode;
     }
 
     @Override
@@ -105,6 +113,14 @@ public class ShooterSubsystem extends SubsystemBase {
         
     }
 
+    public double getCurrentTopRPM() {
+        return currentTopRPM;
+    }
+    
+    public double getCurrentBottomRPM() {
+        return currentBottomRPM;
+    }
+
     public void setTopTargetVelocity(double rpm) {
         targetTopRPM = rpm;
     }
@@ -116,6 +132,10 @@ public class ShooterSubsystem extends SubsystemBase {
     public void setVelocity(double rpm) {
         targetTopRPM = rpm;
         targetBottomRPM = rpm;
+    }
+
+    public Command getOnCommand() {
+        return getSetPowerCommand(toggledDutyCycleSpeed);
     }
 
     public Command getSetPowerCommand(double power) {
@@ -134,8 +154,8 @@ public class ShooterSubsystem extends SubsystemBase {
      * @return
      */
     public Command getSetPowerCommand(final DoubleSupplier powSupplier, final double topMult, final double bottomMult) {
-        final double correctedTopMult = MathUtil.clamp(topMult, -1, 1);
-        final double correctedBottomMult = MathUtil.clamp(bottomMult, -1, 1);
+        final double correctedTopMult = MathUtil.clamp(topMult, -1, 1) * MAX_RPM;
+        final double correctedBottomMult = MathUtil.clamp(bottomMult, -1, 1) * MAX_RPM;
 
         return this.runOnce(() -> controlMode = ControlMode.DutyCycle)
             .andThen(this.runEnd(() -> {
