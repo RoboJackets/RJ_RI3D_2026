@@ -123,10 +123,12 @@ public class RobotContainer {
 
     driverXbox.leftStick().onTrue(Commands.runOnce(drivebase::zeroGyroWithAlliance));
 
-    driverXbox.a().toggleOnTrue(intake.getPowerCOmmand());
+    driverXbox.a().toggleOnTrue(intake.getPowerCommand());
 
-    //driverXbox.b().toggleOnTrue(shooter.getOnCommand());
+    driverXbox.b().toggleOnTrue(shooter.getOnCommand());
+    indexer.setDefaultCommand(indexer.getSetPowerCommand(intake.getTransferPower() != 0D ? -.1 : 0));
     driverXbox.rightTrigger().whileTrue(indexer.getOnCommand());
+  
 
     driverXbox.povUp().whileTrue(climber.getOnCommand(false));
     driverXbox.povDown().whileTrue(climber.getOnCommand(true));

@@ -49,8 +49,15 @@ public class IntakeAndTransferSubsystem extends SubsystemBase {
     //     return intake.set(intakePowSupplier)
     //         .alongWith(transfer1.set(transferPowerSupplier));
     // }
-    public Command getPowerCOmmand() {
-        return this.runEnd(()->{intake.set(intakeSpeed);transfer1.set(transferSpeed);},()->{intake.set(0);transfer1.set(0);});
+    public Command getPowerCommand(double intakeSetSpeed, double transferSetSpeed) {
+        return this.runEnd(()->{intake.set(intakeSetSpeed);transfer1.set(transferSetSpeed);},()->{intake.set(0);transfer1.set(0);});
     }
 
+    public Command getPowerCommand() {
+        return getPowerCommand(intakeSpeed, transferSpeed);
+    }
+
+    public double getTransferPower() {
+        return transfer1.get();
+    }
 }
