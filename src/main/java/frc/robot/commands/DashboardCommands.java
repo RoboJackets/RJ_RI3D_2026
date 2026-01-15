@@ -40,7 +40,7 @@ public class DashboardCommands extends SubsystemBase {
         return indexer.getSetPowerCommand(() -> indexerPower);
     }
 
-    public Command intakePowerCommand(IntakeAndTransferSubsystem intake) {
-        return intake.getSetPowerCommand(() -> intakePower, () -> transferPower);
-    }
+    // public Command intakePowerCommand(IntakeAndTransferSubsystem intake) {
+    //     return intake.getSetPowerCommand(() -> intakePower, () -> transferPower);
+    //}
   }
