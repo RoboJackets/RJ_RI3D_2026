@@ -37,7 +37,7 @@ import static frc.robot.Utilities.*;
  * trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  public static double POW = 2, MULT_X = -.25, MULT_Y = -.25, MULT_ROT = .5, DEADBAND = .05;
+  public static double POW = 2, MULT_X = 1, MULT_Y = 1, MULT_ROT = .5, DEADBAND = .05;
 
   public static boolean driveRobotOriented = false, controlFlywheelWithAutoAlign = false;
 
@@ -81,8 +81,8 @@ public class RobotContainer {
 
     driveAngularVelocity = SwerveInputStream.of(
         drivebase.getSwerveDrive(),
-        () -> driverXbox.getLeftX() ,
-        () -> driverXbox.getLeftY() * MULT_Y)
+        () -> driverXbox.getLeftY() * MULT_X ,
+        () -> driverXbox.getLeftX() * MULT_Y)
         .withControllerRotationAxis(() -> driverXbox.getRightX() * MULT_ROT)
         .deadband(DEADBAND)
         .scaleTranslation(1)
@@ -126,7 +126,7 @@ public class RobotContainer {
     driverXbox.a().toggleOnTrue(intake.getPowerCommand());
 
     driverXbox.b().toggleOnTrue(shooter.getOnCommand());
-    indexer.setDefaultCommand(indexer.getSetPowerCommand(intake.getTransferPower() != 0D ? -.1 : 0));
+    indexer.setDefaultCommand(indexer.getSetPowerCommand(() -> intake.getTransferPower() > 0.05 ? -.01 : 0));
     driverXbox.rightTrigger().whileTrue(indexer.getOnCommand());
   
 

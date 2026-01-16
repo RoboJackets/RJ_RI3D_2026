@@ -58,6 +58,6 @@ public class IntakeAndTransferSubsystem extends SubsystemBase {
     }
 
     public double getTransferPower() {
-        return transfer1.get();
+        return Math.abs(transfer1.get());
     }
 }
