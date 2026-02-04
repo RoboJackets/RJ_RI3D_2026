@@ -37,7 +37,7 @@ import static frc.robot.Utilities.*;
  * trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  public static double POW = 2, MULT_X = 1, MULT_Y = 1, MULT_ROT = .5, DEADBAND = .05;
+  public static double POW = 2, MULT_X = .25, MULT_Y = .25, MULT_ROT = .25, DEADBAND = .1;
 
   public static boolean driveRobotOriented = false, controlFlywheelWithAutoAlign = false;
 
@@ -52,10 +52,10 @@ public class RobotContainer {
   //
   private final SwerveInputStream driveAngularVelocity;
 
-  private final ElevatorSubsystem climber;
+  // private final ElevatorSubsystem climber;
   private final IntakeAndTransferSubsystem intake;
-  private final RevShooterFlywheelSubsystem shooter;
-  private final Indexer indexer;
+  // private final RevShooterFlywheelSubsystem shooter;
+  // private final Indexer indexer;
 
   private final Command driveFieldOrientedCommand, driveRobotOrientedCommand;
 
@@ -81,9 +81,9 @@ public class RobotContainer {
 
     driveAngularVelocity = SwerveInputStream.of(
         drivebase.getSwerveDrive(),
-        () -> driverXbox.getLeftY() * MULT_X ,
-        () -> driverXbox.getLeftX() * MULT_Y)
-        .withControllerRotationAxis(() -> driverXbox.getRightX() * MULT_ROT)
+        () -> driverXbox.getRawAxis(1) * -1*MULT_X ,
+        () -> driverXbox.getRawAxis(0) * -1*MULT_Y)
+        .withControllerRotationAxis(() -> driverXbox.getRawAxis(2) * MULT_ROT)
         .deadband(DEADBAND)
         .scaleTranslation(1)
         .allianceRelativeControl(true);
@@ -94,10 +94,10 @@ public class RobotContainer {
     // Configure the trigger bindings
     DriverStation.silenceJoystickConnectionWarning(true);
 
-    climber = new ElevatorSubsystem();
+    // climber = new ElevatorSubsystem();
     intake = new IntakeAndTransferSubsystem();
-    shooter = new RevShooterFlywheelSubsystem();
-    indexer = new Indexer();
+    // shooter = new RevShooterFlywheelSubsystem();
+    // indexer = new Indexer();
 
     configureBindings();
   }
@@ -122,43 +122,43 @@ public class RobotContainer {
         () -> driveRobotOriented));
 
     driverXbox.leftStick().onTrue(Commands.runOnce(drivebase::zeroGyroWithAlliance));
-
+      driverXbox.x().onTrue(Commands.runOnce(drivebase::zeroGyroWithAlliance));
     driverXbox.a().toggleOnTrue(intake.getPowerCommand());
 
-    driverXbox.b().toggleOnTrue(shooter.getOnCommand());
-    indexer.setDefaultCommand(indexer.getSetPowerCommand(() -> intake.getTransferPower() > 0.05 ? -.01 : 0));
-    driverXbox.rightTrigger().whileTrue(indexer.getOnCommand());
+    // driverXbox.b().toggleOnTrue(shooter.getOnCommand());
+    // indexer.setDefaultCommand(indexer.getSetPowerCommand(() -> intake.getTransferPower() > 0.05 ? -.01 : 0));
+    // driverXbox.rightTrigger().whileTrue(indexer.getOnCommand());
   
 
-    driverXbox.povUp().whileTrue(climber.getOnCommand(false));
-    driverXbox.povDown().whileTrue(climber.getOnCommand(true));
+    // driverXbox.povUp().whileTrue(climber.getOnCommand(false));
+    // driverXbox.povDown().whileTrue(climber.getOnCommand(true));
     // driverXbox.rightBumper().toggleOnTrue(
     //     Commands.either(
     //         new AutoAlign(drivebase, driveAngularVelocity),
     //         new AlignAndFlywheel(drivebase, driveAngularVelocity, shooter),
     //         () -> controlFlywheelWithAutoAlign).until(driverXbox.axisGreaterThan(2, .5)));
 
-    final DashboardCommands dashboardCommands = new DashboardCommands();
-    new Trigger(() -> enableClimberPowDash).whileTrue(dashboardCommands.climberPowerCommand(climber));
-    new Trigger(() -> enableClimberPosDash).whileTrue(dashboardCommands.climberPositionCommand(climber));
-    // new Trigger(() -> enableShooterDash).whileTrue(dashboardCommands.shooterPowerCommand(shooter));
-    new Trigger(() -> enableIndexerDash).whileTrue(dashboardCommands.indexerPowerCommand(indexer));
-    //new Trigger(() -> enableIntakeDash).whileTrue(dashboardCommands.intakePowerCommand(intake));
+    // final DashboardCommands dashboardCommands = new DashboardCommands();
+    // new Trigger(() -> enableClimberPowDash).whileTrue(dashboardCommands.climberPowerCommand(climber));
+    // new Trigger(() -> enableClimberPosDash).whileTrue(dashboardCommands.climberPositionCommand(climber));
+    // // new Trigger(() -> enableShooterDash).whileTrue(dashboardCommands.shooterPowerCommand(shooter));
+    // new Trigger(() -> enableIndexerDash).whileTrue(dashboardCommands.indexerPowerCommand(indexer));
+    // //new Trigger(() -> enableIntakeDash).whileTrue(dashboardCommands.intakePowerCommand(intake));
 
-    driverXbox.leftBumper()
-        .whileTrue(drivebase.drive(SwerveInputStream.of(drivebase.getSwerveDrive(), () -> 1, () -> 1)));
+    // driverXbox.leftBumper()
+    //     .whileTrue(drivebase.drive(SwerveInputStream.of(drivebase.getSwerveDrive(), () -> 1, () -> 1)));
 
-    new Trigger(() -> DriverStation.isEnabled()).whileTrue(((new InstantCommand(() -> {
-      LimelightHelpers.setLEDMode_ForceOn(LIMELIGHT_2PLUS_CENTER_NAME);
-    }, new Subsystem[] {})
-        .andThen(new WaitCommand(0.25))
-        .andThen(new InstantCommand(() -> {
-          LimelightHelpers.setLEDMode_ForceOff(LIMELIGHT_2PLUS_CENTER_NAME);
-        }, new Subsystem[] {}))
-        .andThen(new WaitCommand(0.25)))
-        .repeatedly()).finallyDo(() -> {
-          LimelightHelpers.setLEDMode_ForceOn(LIMELIGHT_2PLUS_CENTER_NAME);
-        }));
+    // new Trigger(() -> DriverStation.isEnabled()).whileTrue(((new InstantCommand(() -> {
+    //   LimelightHelpers.setLEDMode_ForceOn(LIMELIGHT_2PLUS_CENTER_NAME);
+    // }, new Subsystem[] {})
+    //     .andThen(new WaitCommand(0.25))
+    //     .andThen(new InstantCommand(() -> {
+    //       LimelightHelpers.setLEDMode_ForceOff(LIMELIGHT_2PLUS_CENTER_NAME);
+    //     }, new Subsystem[] {}))
+    //     .andThen(new WaitCommand(0.25)))
+    //     .repeatedly()).finallyDo(() -> {
+    //       LimelightHelpers.setLEDMode_ForceOn(LIMELIGHT_2PLUS_CENTER_NAME);
+    //     }));
   }
 
   /**

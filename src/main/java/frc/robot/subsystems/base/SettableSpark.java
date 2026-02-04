@@ -32,7 +32,7 @@ public class SettableSpark extends SubsystemBase {
         motor = new SparkMax(can_id, motorType);
         final SparkMaxConfig config = new SparkMaxConfig();
 
-        config.idleMode(IdleMode.kBrake).smartCurrentLimit(40);
+        config.idleMode(IdleMode.kBrake).smartCurrentLimit(90);
 
         config.inverted(invert); // intake inversion
         motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);

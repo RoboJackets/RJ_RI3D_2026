@@ -32,7 +32,7 @@ public class RevShooterFlywheelSubsystem extends SubsystemBase {
 
     private static double MAX_VOLTAGE = 11.5; // can be changed
 
-    private double toggledDutyCycleSpeed = 0.35;
+    private double toggledDutyCycleSpeed = 0.465;
 
     private double targetTopRPM = 0, currentTopRPM = 0, targetBottomRPM = 0, currentBottomRPM = 0;
 
